@@ -181,6 +181,58 @@ class Agent:
 
         return path
 
+    def dfs(self):
+        # Create the list of explored cells
+        explored = [self.__maze.start_cell]
+        # Create the list of frontier cells
+        frontier = [self.__maze.start_cell]
+
+        # create the dictionary to store the path where children are the keys and their parents are the value
+        child_key_parent_value_path = {}
+
+        # loop until the frontier is not empty
+        while len(frontier) > 0:
+            # Get current cell
+            current_cell = frontier.pop()
+            # Check if goal was reached
+            if current_cell == self.__maze.goal_cell:
+                break
+            # Explore each of the directions and find child cells
+            for direction in [Directions.UP.value, Directions.DOWN.value, Directions.LEFT.value,
+                              Directions.RIGHT.value]:
+                # Check if the path is open
+                if self.__maze.maze_map[current_cell][direction]:
+                    # Create a child cell
+                    child_cell = (0, 0)
+
+                    # find the child cell
+                    if direction == Directions.RIGHT.value:
+                        child_cell = (current_cell[0], current_cell[1] + 1)
+                    elif direction == Directions.LEFT.value:
+                        child_cell = (current_cell[0], current_cell[1] - 1)
+                    elif direction == Directions.DOWN.value:
+                        child_cell = (current_cell[0] + 1, current_cell[1])
+                    elif direction == Directions.UP.value:
+                        child_cell = (current_cell[0] - 1, current_cell[1])
+
+                    # Check if child cell was already explored
+                    if child_cell in explored:
+                        # Skip to next direction
+                        continue
+
+                    # Add child cell to explored list
+                    explored.append(child_cell)
+
+                    # Add child cell to frontier list
+                    frontier.append(child_cell)
+
+                    # Add the cells to the path
+                    child_key_parent_value_path[child_cell] = current_cell
+
+        # create the dictionary to store the path where children are the value and parents the key
+        return self.reverse_path(child_key_parent_value_path, self.__maze.goal_cell, [])
+
+
     def rotate_clock_wise(self, direction_dictionary):
         keys = list(direction_dictionary.keys())
         values = list(direction_dictionary.values())

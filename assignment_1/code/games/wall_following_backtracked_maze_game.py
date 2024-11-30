@@ -7,7 +7,6 @@ from domain.agent import Agent
 from maze_generators import backtracking
 from games import game
 from heuristics import euclidean
-from screen import display
 
 
 def play(height, width):
