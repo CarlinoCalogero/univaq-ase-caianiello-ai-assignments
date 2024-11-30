@@ -140,6 +140,13 @@ class Agent:
         return self.reverse_path(child_key_parent_value_path, self.__maze.goal_cell)
 
     def wall_follower(self):
+        """
+        Implementation of the Left Wall Following Algorithm.
+        It finds a solution only if the maze has a path to the goal.
+
+        :return:
+        """
+
         # Set start cell as current cell
         current_cell = self.__maze.start_cell
         # Set up the direction dictionary of the agent.
