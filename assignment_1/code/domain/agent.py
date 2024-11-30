@@ -1,5 +1,5 @@
 from queue import PriorityQueue
-from directions import Directions
+from domain.directions import Directions
 import copy
 
 
@@ -138,6 +138,73 @@ class Agent:
 
         # create the dictionary to store the path where children are the value and parents the key
         return self.reverse_path(child_key_parent_value_path, self.__maze.goal_cell)
+
+    def wall_follower(self):
+        # Set start cell as current cell
+        current_cell = self.__maze.start_cell
+        # Set up the direction dictionary of the agent.
+        # Agent moves from top to bottom, so its direction is pointing down
+        direction_dictionary = {
+            Directions.UP.name: Directions.DOWN.value,
+            Directions.LEFT.name: Directions.RIGHT.value,
+            Directions.DOWN.name: Directions.UP.value,
+            Directions.RIGHT.name: Directions.LEFT.value
+        }
+        # Create the array for storing the path and put the current cell inside it
+        path = [current_cell]
+
+        while True:
+            # Check if goal was reached
+            if current_cell == self.__maze.goal_cell:
+                break
+            # Check if there is a wall on the left side
+            if self.__maze.maze_map[current_cell][direction_dictionary[Directions.LEFT.name]] == 0:
+                # Check if there is a wall on the front side
+                if self.__maze.maze_map[current_cell][direction_dictionary[Directions.UP.name]] == 0:
+                    # Rotate clock wise
+                    direction_dictionary = self.rotate_clock_wise(direction_dictionary)
+                else:
+                    current_cell = self.move_forward(current_cell, direction_dictionary)
+                    path.append(current_cell)
+            else:
+                # Rotate counter clock wise
+                direction_dictionary = self.rotate_counter_clock_wise(direction_dictionary)
+                current_cell = self.move_forward(current_cell, direction_dictionary)
+                path.append(current_cell)
+
+        return path
+
+    def rotate_clock_wise(self, direction_dictionary):
+        keys = list(direction_dictionary.keys())
+        values = list(direction_dictionary.values())
+        # rotate values
+        rotated_values = [values[-1]]+values[:-1]
+        # update the values of the keys
+        return dict(zip(keys, rotated_values))
+
+    def rotate_counter_clock_wise(self, direction_dictionary):
+        keys = list(direction_dictionary.keys())
+        values = list(direction_dictionary.values())
+        # rotate values
+        rotated_values = values[1:]+[values[0]]
+        # update the values of the keys
+        return dict(zip(keys, rotated_values))
+
+    def move_forward(self, current_cell, direction_dictionary):
+        """
+        Moves the agent one step forward
+
+        :param current_cell: current position of the agent in the maze
+        :return:
+        """
+        if direction_dictionary[Directions.UP.name] == Directions.RIGHT.value:
+            return (current_cell[0], current_cell[1] + 1)
+        if direction_dictionary[Directions.UP.name] == Directions.LEFT.value:
+            return (current_cell[0], current_cell[1] - 1)
+        if direction_dictionary[Directions.UP.name] == Directions.UP.value:
+            return (current_cell[0] - 1, current_cell[1])
+        if direction_dictionary[Directions.UP.name] == Directions.DOWN.value:
+            return (current_cell[0] + 1, current_cell[1])
 
     def reverse_path(self, child_key_parent_value_path, current_cell, path=None):
         if path is None:
