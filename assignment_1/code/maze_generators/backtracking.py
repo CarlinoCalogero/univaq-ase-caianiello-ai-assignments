@@ -1,11 +1,9 @@
 # A program which uses recursive backtracking to generate a maze
 
 import random
-import numpy as np
 import sys
-from domain.maze import Maze
 from maze_generators import generator
-from directions import Directions
+from domain.directions import Directions
 
 sys.setrecursionlimit(8000)
 

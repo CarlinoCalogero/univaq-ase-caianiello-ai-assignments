@@ -1,4 +1,4 @@
-from directions import Directions
+from domain.directions import Directions
 from domain.maze import Maze
 import numpy as np
 

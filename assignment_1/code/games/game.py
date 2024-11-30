@@ -1,6 +1,6 @@
 # A template for a Maze Runner Game module
 
-import display
+from screen import display
 import copy
 import numpy as np
 
