@@ -3,78 +3,51 @@
 import random
 import numpy as np
 import sys
+from domain.maze import Maze
+from maze_generators import generator
 from directions import Directions
-from maze import Maze
 
 sys.setrecursionlimit(8000)
 
 
-def create_maze(width, height):
-    # adjust the width and height for the grid in order to make sure that the maze's size, outer visited layer
-    # included, are odd
-    if width % 2 == 0:
-        width += 1
-    if height % 2 == 0:
-        height += 1
+def create_maze(init_width, init_height):
+    # Generate a maze object
+    maze = generator.generate_maze_base_object(init_width, init_height)
 
-    # Create a maze object
-    maze = Maze(height, width)
-
-    # Creates a 2d array with all cells set at 1.0
-    maze.maze = np.ones((height, width), dtype=float)
-
-    for i in range(height):
-        for j in range(width):
+    for i in range(maze.height):
+        for j in range(maze.width):
             # Sets all odd rows and columns cells to 0 (black)
             # This will give the desired alternating pattern of a grid
             if i % 2 == 1 or j % 2 == 1:
                 maze.maze[i, j] = 0
             # Set every cell of the outer layer of the maze as a visited node
-            if i == 0 or j == 0 or i == height - 1 or j == width - 1:
+            if i == 0 or j == 0 or i == maze.height - 1 or j == maze.width - 1:
                 maze.maze[i, j] = 0.5  # we mark visited cells with 0.5 (gray)
 
     # Select a random cell as starting point for the generator
     # The starting cell must be an unvisited cell and not a wall or an outer layer part of the maze
-    sx = random.choice(range(2, width - 2, 2))
-    sy = random.choice(range(2, height - 2, 2))
+    sx = random.choice(range(2, maze.width - 2, 2))
+    sy = random.choice(range(2, maze.height - 2, 2))
 
-    generator(sx, sy, maze.maze)
+    backtracking_algorithm(sx, sy, maze.maze)
 
-    for i in range(height):
-        for j in range(width):
+    for i in range(maze.height):
+        for j in range(maze.width):
             # Change the path color from gray to white
             if maze.maze[i, j] == 0.5:
                 maze.maze[i, j] = 1
             # Compute maze map for cells
-            compute_maze_map_cell_entry(maze, i, j)
+            generator.compute_maze_map_cell_entry(maze, i, j)
             # Compute maze grid
-            if not check_if_cell_is_outer_layer_cell(maze, i, j):
+            if not generator.check_if_cell_is_outer_layer_cell(maze, i, j):
                 maze.grid.append((i, j))
 
-    # Add the maze starting point
-    maze.maze[1, 2] = 1
-    maze.start_cell = (1, 2)
-    compute_maze_map_cell_entry(maze, 1, 2)
-    # Recompute for neighbour cells
-    compute_maze_map_cell_entry(maze, 1 - 1, 2)  # UP
-    compute_maze_map_cell_entry(maze, 1 + 1, 2)  # DOWN
-    compute_maze_map_cell_entry(maze, 1, 2 - 1)  # LEFT
-    compute_maze_map_cell_entry(maze, 1, 2 + 1)  # RIGHT
-
-    # Add the goal
-    maze.maze[height - 2, width - 3] = 1
-    maze.goal_cell = (height - 2, width - 3)
-    # Recompute for neighbour cells
-    compute_maze_map_cell_entry(maze, height - 2, width - 3)
-    compute_maze_map_cell_entry(maze, height - 2 - 1, width - 3)  # UP
-    compute_maze_map_cell_entry(maze, height - 2 + 1, width - 3)  # DOWN
-    compute_maze_map_cell_entry(maze, height - 2, width - 3 - 1)  # LEFT
-    compute_maze_map_cell_entry(maze, height - 2, width - 3 + 1)  # RIGHT
+    generator.generate_start_and_goal_cells(maze)
 
     return maze
 
 
-def generator(cx, cy, grid):
+def backtracking_algorithm(cx, cy, grid):
     """
     Backtracking algorithm implementation
 
@@ -127,26 +100,7 @@ def generator(cx, cy, grid):
             if grid[ny, nx] != 0.5:
                 # If this randomly selected adjacent cell is visited, then go and select another cell to move to
                 grid[my, mx] = 0.5
-                generator(nx, ny, grid)
+                backtracking_algorithm(nx, ny, grid)
 
             # If this randomly selected adjacent cell is not visited, then carve the wall, and then do the same
             # process, this time on the new cell
-
-
-def compute_maze_map_cell_entry(maze, cell_row, cell_column):
-    # Remember that the outer layer does not count so the maze start at (1,1) and ends at (h-1, w-1)
-    if (cell_row > 0 and cell_column > 0) and (cell_row < maze.height - 1 and cell_column < maze.width - 1):
-        maze.maze_map[(cell_row, cell_column)] = {
-            Directions.UP.value: 0 if check_if_cell_is_outer_layer_cell(maze, cell_row - 1, cell_column) or maze.maze[
-                cell_row - 1, cell_column] == 0 else 1,
-            Directions.DOWN.value: 0 if check_if_cell_is_outer_layer_cell(maze, cell_row + 1, cell_column) or maze.maze[
-                cell_row + 1, cell_column] == 0 else 1,
-            Directions.LEFT.value: 0 if check_if_cell_is_outer_layer_cell(maze, cell_row, cell_column - 1) or maze.maze[
-                cell_row, cell_column - 1] == 0 else 1,
-            Directions.RIGHT.value: 0 if check_if_cell_is_outer_layer_cell(maze, cell_row, cell_column + 1) or maze.maze[
-                cell_row, cell_column + 1] == 0 else 1,
-        }
-
-
-def check_if_cell_is_outer_layer_cell(maze, cell_row, cell_column):
-    return cell_row == 0 or cell_row == maze.height - 1 or cell_column == 0 or cell_column == maze.width - 1

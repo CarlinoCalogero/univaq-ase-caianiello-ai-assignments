@@ -3,7 +3,7 @@
 # - manhattan distance heuristic
 # - A* algorithm
 
-from agent import Agent
+from domain.agent import Agent
 from maze_generators import backtracking
 from games import game
 from heuristics import manhattan
