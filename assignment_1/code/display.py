@@ -3,17 +3,14 @@
 import cv2
 
 
-def create_window():
+def create_window(window_name):
     print("Using OpenCV version: " + cv2.__version__)
+    cv2.namedWindow(window_name, cv2.WINDOW_KEEPRATIO)
 
-    cv2.namedWindow('Maze', cv2.WINDOW_KEEPRATIO)
 
-
-def display(image):
-    cv2.imshow('Maze', image)
-    cv2.waitKey(500)
-
-    # cv2.imwrite(self.path, self._maze * 255.0)
+def display(image, window_name):
+    cv2.imshow(window_name, image)
+    cv2.waitKey(300)
 
 
 def close_window():
@@ -22,3 +19,4 @@ def close_window():
 
 def wait():
     cv2.waitKey(0)
+    close_window()
