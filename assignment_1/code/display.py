@@ -1,3 +1,5 @@
+# In order to install cv2 type
+# pip install opencv-python
 import cv2
 
 
