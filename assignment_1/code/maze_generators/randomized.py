@@ -2,6 +2,10 @@
 
 import random
 from maze_generators import generator
+from domain.agent import Agent
+from heuristics import manhattan
+import math
+from domain.directions import Directions
 
 
 def create_maze(init_width, init_height, max_number_of_obstacles=None):
@@ -21,6 +25,8 @@ def create_maze(init_width, init_height, max_number_of_obstacles=None):
     randomized_algorithm(maze, max_number_of_obstacles)
 
     generator.generate_start_and_goal_cells(maze)
+
+    tweak_maze(maze)
 
     return maze
 
@@ -42,3 +48,84 @@ def randomized_algorithm(maze, max_number_of_obstacles):
             # Compute maze grid
             if not generator.check_if_cell_is_outer_layer_cell(maze, i, j):
                 maze.grid.append((i, j))
+
+
+def tweak_maze(maze):
+    while True:
+        agent = Agent(maze)
+        agent.a_star(manhattan.manhattan_distance_heuristic)
+
+        # Check if maze has blocked goal
+        if check_if_maze_has_blocked_goal(agent):
+            # Get the closest cell to goal
+            closest_cell = find_cell_closest_to_goal(agent)
+
+            # define wall cell to break
+            wall_cell_to_break = (0, 0)
+
+            # explore all four neighbours
+            for direction in [Directions.UP.value, Directions.DOWN.value, Directions.LEFT.value,
+                              Directions.RIGHT.value]:
+                # check if there is a wall in current selected direction
+                if maze.maze_map[closest_cell][direction] == 0:
+                    neighbour_cell = (0, 0)
+
+                    # find neighbour wall cell to break
+                    if direction == Directions.UP.value:
+                        neighbour_cell = (closest_cell[0] - 1, closest_cell[1])
+
+                    if direction == Directions.DOWN.value:
+                        neighbour_cell = (closest_cell[0] + 1, closest_cell[1])
+
+                    if direction == Directions.RIGHT.value:
+                        neighbour_cell = (closest_cell[0], closest_cell[1] + 1)
+
+                    if direction == Directions.LEFT.value:
+                        neighbour_cell = (closest_cell[0], closest_cell[1] - 1)
+
+                    if not generator.check_if_cell_is_outer_layer_cell(maze, neighbour_cell[0], neighbour_cell[1]):
+                        wall_cell_to_break_goal_cell_distance = compute_cell_distance(wall_cell_to_break, maze.goal_cell)
+                        neighbour_cell_goal_cell_distance = compute_cell_distance(neighbour_cell, maze.goal_cell)
+                        if neighbour_cell_goal_cell_distance < wall_cell_to_break_goal_cell_distance:
+                            wall_cell_to_break = neighbour_cell
+
+            # Check if a wall to break was found
+            if wall_cell_to_break != (0, 0):
+                print(f"Carved cell {wall_cell_to_break}")
+                # Carve a path in the wall
+                maze.maze[wall_cell_to_break[0], wall_cell_to_break[1]] = 1
+                generator.compute_maze_map_cell_entry(maze, wall_cell_to_break[0], wall_cell_to_break[1])
+                # Recompute for neighbour cells
+                generator.compute_maze_map_cell_entry(maze, wall_cell_to_break[0] - 1, wall_cell_to_break[1])  # UP
+                generator.compute_maze_map_cell_entry(maze, wall_cell_to_break[0] + 1, wall_cell_to_break[1])  # DOWN
+                generator.compute_maze_map_cell_entry(maze, wall_cell_to_break[0], wall_cell_to_break[1] - 1)  # LEFT
+                generator.compute_maze_map_cell_entry(maze, wall_cell_to_break[0], wall_cell_to_break[1] + 1)  # RIGHT
+        else:
+            break
+
+
+def check_if_maze_has_blocked_goal(agent):
+    return agent.maze.goal_cell not in agent.states
+
+
+def find_cell_closest_to_goal(agent):
+    closest_cell = (0, 0)
+    for child_cell in agent.states:
+        parent_cell = agent.states[child_cell]
+
+        child_cell_goal_cell_distance = compute_cell_distance(child_cell, agent.maze.goal_cell)
+        parent_cell_goal_cell_distance = compute_cell_distance(parent_cell, agent.maze.goal_cell)
+
+        nearest_cell_goal_cell_distance = compute_cell_distance(closest_cell, agent.maze.goal_cell)
+
+        if child_cell_goal_cell_distance < nearest_cell_goal_cell_distance:
+            closest_cell = child_cell
+
+        if parent_cell_goal_cell_distance < nearest_cell_goal_cell_distance:
+            closest_cell = parent_cell
+
+    return closest_cell
+
+
+def compute_cell_distance(cell_1, cell_2):
+    return math.sqrt((cell_2[0] - cell_1[0]) ** 2 + (cell_2[1] - cell_1[1]) ** 2)
