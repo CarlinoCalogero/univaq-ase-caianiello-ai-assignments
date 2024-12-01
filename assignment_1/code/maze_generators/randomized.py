@@ -61,14 +61,14 @@ def tweak_maze(maze):
             closest_cell = find_cell_closest_to_goal(agent)
 
             # define wall cell to break
-            wall_cell_to_break = (0, 0)
+            wall_cell_to_break = maze.start_cell
 
             # explore all four neighbours
             for direction in [Directions.UP.value, Directions.DOWN.value, Directions.LEFT.value,
                               Directions.RIGHT.value]:
                 # check if there is a wall in current selected direction
                 if maze.maze_map[closest_cell][direction] == 0:
-                    neighbour_cell = (0, 0)
+                    neighbour_cell = maze.start_cell
 
                     # find neighbour wall cell to break
                     if direction == Directions.UP.value:
@@ -89,9 +89,7 @@ def tweak_maze(maze):
                         if neighbour_cell_goal_cell_distance < wall_cell_to_break_goal_cell_distance:
                             wall_cell_to_break = neighbour_cell
 
-            # Check if a wall to break was found
-            if wall_cell_to_break != (0, 0):
-                print(f"Carved cell {wall_cell_to_break}")
+            if wall_cell_to_break != maze.start_cell:
                 # Carve a path in the wall
                 maze.maze[wall_cell_to_break[0], wall_cell_to_break[1]] = 1
                 generator.compute_maze_map_cell_entry(maze, wall_cell_to_break[0], wall_cell_to_break[1])
@@ -109,7 +107,7 @@ def check_if_maze_has_blocked_goal(agent):
 
 
 def find_cell_closest_to_goal(agent):
-    closest_cell = (0, 0)
+    closest_cell = agent.maze.start_cell
     for child_cell in agent.states:
         parent_cell = agent.states[child_cell]
 
