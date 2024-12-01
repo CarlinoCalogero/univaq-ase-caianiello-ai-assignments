@@ -7,6 +7,7 @@ class Agent:
 
     def __init__(self, maze):
         self.__maze = maze
+        self.__states = {}
 
     @property
     def maze(self):
@@ -15,6 +16,10 @@ class Agent:
     @maze.setter
     def maze(self, maze):
         self.__maze = maze
+    
+    @property
+    def states(self):
+        return self.__states
 
     # Best First algorithm implementation
     def best_first(self, h):
@@ -68,6 +73,9 @@ class Agent:
                         open.put((h(child_cell, self.__maze.goal_cell), child_cell))
                         # add node to path
                         child_key_parent_value_path[child_cell] = current_cell
+
+        # Save agent states
+        self.__states = copy.deepcopy(child_key_parent_value_path)
 
         # create the dictionary to store the path where children are the value and parents the key
         return self.reverse_path(child_key_parent_value_path, self.__maze.goal_cell, [])
@@ -136,6 +144,9 @@ class Agent:
                         # add node to path
                         child_key_parent_value_path[child_cell] = current_cell
 
+        # Save agent states
+        self.__states = copy.deepcopy(child_key_parent_value_path)
+
         # create the dictionary to store the path where children are the value and parents the key
         return self.reverse_path(child_key_parent_value_path, self.__maze.goal_cell)
 
@@ -160,6 +171,9 @@ class Agent:
         # Create the array for storing the path and put the current cell inside it
         path = [current_cell]
 
+        # create the dictionary to store the path where children are the keys and their parents are the value
+        child_key_parent_value_path = {}
+
         while True:
             # Check if goal was reached
             if current_cell == self.__maze.goal_cell:
@@ -171,13 +185,20 @@ class Agent:
                     # Rotate clock wise
                     direction_dictionary = self.rotate_clock_wise(direction_dictionary)
                 else:
-                    current_cell = self.move_forward(current_cell, direction_dictionary)
-                    path.append(current_cell)
+                    next_cell = self.move_forward(current_cell, direction_dictionary)
+                    path.append(next_cell)
+                    child_key_parent_value_path[next_cell] = current_cell
+                    current_cell = next_cell
             else:
                 # Rotate counter clock wise
                 direction_dictionary = self.rotate_counter_clock_wise(direction_dictionary)
-                current_cell = self.move_forward(current_cell, direction_dictionary)
-                path.append(current_cell)
+                next_cell = self.move_forward(current_cell, direction_dictionary)
+                path.append(next_cell)
+                child_key_parent_value_path[next_cell] = current_cell
+                current_cell = next_cell
+        
+        # Save agent states
+        self.__states = copy.deepcopy(child_key_parent_value_path)
 
         return path
 
@@ -228,6 +249,9 @@ class Agent:
 
                     # Add the cells to the path
                     child_key_parent_value_path[child_cell] = current_cell
+
+        # Save agent states
+        self.__states = copy.deepcopy(child_key_parent_value_path)
 
         # create the dictionary to store the path where children are the value and parents the key
         return self.reverse_path(child_key_parent_value_path, self.__maze.goal_cell, [])
