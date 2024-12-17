@@ -6,13 +6,15 @@ from bl_minmax_l import bl_minmax_l
 import math
 from scorekeeper import Scorekeeper
 from tqdm import tqdm
+from data_analyst import generate_dataset
 
-if __name__ == '__main__':
+
+def dummy_function():
     for _ in tqdm(range(1000), desc="Playing matches..."):
 
-        board_game = start_random_game(3, 8)
+        board_game = start_random_game()
 
-        #print(f"[FEN \"{board_game.fen}\"]")
+        # print(f"[FEN \"{board_game.fen}\"]")
         scorekeeper = Scorekeeper()
         scorekeeper.set_game_board_to_be_tracked(board_game)
         scorekeeper.record_fen()
@@ -30,14 +32,17 @@ if __name__ == '__main__':
 
             board_game.make_move(move)
 
-            #print(f"{move_counter}. {move}")
+            # print(f"{move_counter}. {move}")
             scorekeeper.record_move(move)
 
             move_counter = move_counter + 1
 
-        #print(board_game.board.outcome())
+        # print(board_game.board.outcome())
         scorekeeper.record_outcome()
 
         scorekeeper.record_game("./games/")
         scorekeeper.clear_records()
 
+
+if __name__ == '__main__':
+    generate_dataset(1000, "./")

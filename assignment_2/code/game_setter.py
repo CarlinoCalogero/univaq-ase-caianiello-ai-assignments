@@ -2,7 +2,7 @@ from chess_game import ChessGame
 import random
 
 
-def start_random_game(min_moves, max_moves):
+def start_random_game(min_moves=3, max_moves=8):
     board_game = ChessGame()
 
     for _ in range(min_moves, max_moves):
