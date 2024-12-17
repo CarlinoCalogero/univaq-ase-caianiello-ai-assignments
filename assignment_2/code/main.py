@@ -1,31 +1,21 @@
-from chess_game import ChessGame
 import chess_game
+from game_setter import start_random_game
 from ab_minmax import ab_minmax
 from bl_minmax import bl_minmax
 from bl_minmax_l import bl_minmax_l
-import random
 import math
-import json
-import datetime
+from scorekeeper import Scorekeeper
 from tqdm import tqdm
 
 if __name__ == '__main__':
     for _ in tqdm(range(1000), desc="Playing matches..."):
-        match = {
-            "FEN": None,
-            "moves": None,
-            "analysis_string": None,
-            "outcome": None
-        }
 
-        board_game = ChessGame()
-
-        for _ in range(3, 8):
-            move = random.choice(list(board_game.board.legal_moves))
-            board_game.make_move(move)
+        board_game = start_random_game(3, 8)
 
         #print(f"[FEN \"{board_game.fen}\"]")
-        match["FEN"] = board_game.fen
+        scorekeeper = Scorekeeper()
+        scorekeeper.set_game_board_to_be_tracked(board_game)
+        scorekeeper.record_fen()
 
         move_counter = 1
 
@@ -41,23 +31,13 @@ if __name__ == '__main__':
             board_game.make_move(move)
 
             #print(f"{move_counter}. {move}")
-            if match["moves"] is None:
-                match["moves"] = f"{move_counter}. {move}"
-            else:
-                match["moves"] = f"{match["moves"]} {move_counter}. {move}"
+            scorekeeper.record_move(move)
 
             move_counter = move_counter + 1
 
-        match["analysis_string"] = f"{match["FEN"]} {match["moves"]}"
-
         #print(board_game.board.outcome())
-        match["outcome"] = board_game.board.outcome().termination.__str__()
+        scorekeeper.record_outcome()
 
-        current_time = datetime.datetime.now()
-        file_name = f"{current_time.year}{current_time.month}{current_time.day}{current_time.hour}{current_time.minute}{current_time.second}{current_time.microsecond}"
-
-        # Write dictionary to file using json.dump()
-        file_path = f"./games/{file_name}.json"
-        with open(file_path, "w") as f:
-            json.dump(match, f)
+        scorekeeper.record_game("./games/")
+        scorekeeper.clear_records()
 
