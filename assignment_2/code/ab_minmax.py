@@ -1,4 +1,5 @@
 import math
+import random
 
 
 # MinMax algorithm with alpha beta pruning implementation
@@ -17,14 +18,17 @@ def ab_minmax(board_game, depth, alpha, beta, maximizing_player):
 
     best_move = None
 
+    legal_moves = list(board_game.legal_moves)
+    random.shuffle(legal_moves)
+
     if maximizing_player:
         max_eval = -math.inf
-        for move in board_game.legal_moves:
+        for move in legal_moves:
             board_game.make_move(move)
             eval, _ = ab_minmax(board_game, depth - 1, alpha, beta, False)
             board_game.take_back_last_move()
 
-            if eval > max_eval:
+            if eval >= max_eval:  # the '=' avoids having move set to None because there is no best move
                 max_eval = eval
                 best_move = move
 
@@ -36,12 +40,12 @@ def ab_minmax(board_game, depth, alpha, beta, maximizing_player):
 
     # we are not the maximizing player
     min_eval = +math.inf
-    for move in board_game.legal_moves:
+    for move in legal_moves:
         board_game.make_move(move)
         eval, _ = ab_minmax(board_game, depth - 1, alpha, beta, True)
         board_game.take_back_last_move()
 
-        if eval < min_eval:
+        if eval <= min_eval:  # the '=' avoids having move set to None because there is no best move
             min_eval = eval
             best_move = move
 

@@ -1,4 +1,5 @@
 import math
+import random
 
 
 # MinMax algorithm with alpha beta pruning implementation
@@ -20,6 +21,7 @@ def bl_minmax(board_game, depth, alpha, beta, maximizing_player, branch_factor):
 
     # Sort moves based on heuristic evaluation to pick the most promising ones
     moves = list(board_game.legal_moves)
+    random.shuffle(moves)
     moves = sorted(moves, key=lambda move: board_game.evaluate_move(move), reverse=maximizing_player)
     moves = moves[:branch_factor]  # Limit to top-N moves
 
@@ -30,7 +32,7 @@ def bl_minmax(board_game, depth, alpha, beta, maximizing_player, branch_factor):
             eval, _ = bl_minmax(board_game, depth - 1, alpha, beta, False, branch_factor)
             board_game.take_back_last_move()
 
-            if eval > max_eval:
+            if eval >= max_eval:  # the '=' avoids having move set to None because there is no best move
                 max_eval = eval
                 best_move = move
 
@@ -47,7 +49,7 @@ def bl_minmax(board_game, depth, alpha, beta, maximizing_player, branch_factor):
         eval, _ = bl_minmax(board_game, depth - 1, alpha, beta, True, branch_factor)
         board_game.take_back_last_move()
 
-        if eval < min_eval:
+        if eval <= min_eval:  # the '=' avoids having move set to None because there is no best move
             min_eval = eval
             best_move = move
 
