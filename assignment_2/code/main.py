@@ -45,4 +45,4 @@ def dummy_function():
 
 
 if __name__ == '__main__':
-    generate_dataset(1000, "./")
+    generate_dataset(300000, "./")
