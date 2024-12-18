@@ -6,7 +6,7 @@ from bl_minmax_l import bl_minmax_l
 import math
 from scorekeeper import Scorekeeper
 from tqdm import tqdm
-from data_analyst import generate_dataset
+from data_analyst import generate_dataset, generate_extended_dataset
 from reader import read_csv_file_as_dictionary
 from printer import write_json_file
 from trainer import train_mlp_regressor
@@ -48,17 +48,7 @@ def dummy_function():
         scorekeeper.record_game("./games/")
         scorekeeper.clear_records()
 
-
-def generate_dataset_for_HL():
-    generate_dataset(300000, "./")
-
-
-def convert_dataset_for_HL_to_json_dictionary():
-    data = read_csv_file_as_dictionary("./dataset.csv")
-    write_json_file("./prova", data)
-
-
-if __name__ == '__main__':
+def dummy_regressor_function():
     mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
 
     for _ in tqdm(range(10), desc="Playing matches..."):
@@ -80,7 +70,7 @@ if __name__ == '__main__':
                 eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
             else:
                 eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler)
-                #eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler)
+                # eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler)
 
             board_game.make_move(move)
 
@@ -94,3 +84,15 @@ if __name__ == '__main__':
 
         scorekeeper.record_game("./games/")
         scorekeeper.clear_records()
+
+def generate_dataset_for_HL():
+    generate_dataset(300000, "./")
+
+
+def convert_dataset_for_HL_to_json_dictionary():
+    data = read_csv_file_as_dictionary("./dataset.csv")
+    write_json_file("./prova", data)
+
+
+if __name__ == '__main__':
+    generate_extended_dataset(1000, "./")
