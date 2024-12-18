@@ -3,6 +3,7 @@ import chess.engine
 import math
 
 WHITE = chess.WHITE
+CENTER_SQUARES = [27, 28, 35, 36]  # e4, d4, e5, d5
 
 
 class ChessGame:
@@ -302,6 +303,49 @@ class ChessGame:
         }
         return threat_values.get(piece.piece_type, 0)
 
+    def compute_heuristics(self):
+        # Material balance
+        material_balance = 0
+        # Piece-square table
+        piece_square_table = 0
+
+        # List of all squares on a chessboard
+        squares = list(chess.SQUARES)
+
+        for square in squares:
+            piece = self.__board.piece_at(square)
+            if piece:
+                material_balance += self.get_piece_material_value(piece)
+                piece_square_table += self.get_piece_piece_square_table_value(piece, square)
+
+        # King Safety
+        king_safety = self.evaluate_king_safety(chess.WHITE) - self.evaluate_king_safety(chess.BLACK)
+
+        # Center Control (reward control of central squares e4, d4, e5, d5)
+        center_control = 0
+        for square in CENTER_SQUARES:
+            controlling_piece = self.__board.piece_at(square)
+            if controlling_piece:
+                if controlling_piece.color == chess.WHITE:
+                    center_control += 10
+                else:
+                    center_control -= 10
+
+        # Pawn Structure
+        pawn_structure = self.evaluate_pawn_structure(chess.WHITE) - self.evaluate_pawn_structure(
+            chess.BLACK)
+
+        # Piece Activity (number of legal moves)
+        piece_activity = 0.1 * len(self.get_color_legal_moves(chess.WHITE)) - 0.1 * len(
+            self.get_color_legal_moves(chess.BLACK))
+
+        # Checks
+        checks = 0
+        if self.__board.is_check():
+            checks += 100 if self.__board.turn else -100
+
+        return material_balance, piece_square_table, king_safety, center_control, pawn_structure, piece_activity, checks
+
     # Static evaluation function for chess board
     def evaluate_board(self):
         """
@@ -323,46 +367,9 @@ class ChessGame:
         if self.__board.is_game_over() and self.__board.outcome().termination == chess.Termination.SEVENTYFIVE_MOVES:
             return math.inf if self.__board.turn else -math.inf
 
-        score = 0
+        material_balance, piece_square_table, king_safety, center_control, pawn_structure, piece_activity, checks = self.compute_heuristics()
+        score = sum([material_balance, piece_square_table, king_safety, center_control, pawn_structure, piece_activity, checks])
 
-        # List of all squares on a chessboard
-        squares = list(chess.SQUARES)
-
-        for square in squares:
-            piece = self.__board.piece_at(square)
-            if piece:
-                # Material balance
-                score += self.get_piece_material_value(piece)
-                # Piece-square table
-                score += self.get_piece_piece_square_table_value(piece, square)
-
-        # King Safety
-        score += self.evaluate_king_safety(chess.WHITE)
-        score -= self.evaluate_king_safety(chess.BLACK)
-
-        # Center Control (reward control of central squares e4, d4, e5, d5)
-        CENTER_SQUARES = [27, 28, 35, 36]  # e4, d4, e5, d5
-        for square in CENTER_SQUARES:
-            controlling_piece = self.__board.piece_at(square)
-            if controlling_piece:
-                if controlling_piece.color == chess.WHITE:
-                    score += 10
-                else:
-                    score -= 10
-
-        # Pawn Structure
-        score += self.evaluate_pawn_structure(chess.WHITE)
-        score -= self.evaluate_pawn_structure(chess.BLACK)
-
-        # Piece Activity (number of legal moves)
-        score += 0.1 * len(self.get_color_legal_moves(chess.WHITE))
-        score -= 0.1 * len(self.get_color_legal_moves(chess.BLACK))
-
-        # Checks
-        if self.__board.is_check():
-            score += 100 if self.__board.turn else -100
-
-        #print(score)
         return score
 
     def get_color_legal_moves(self, color):

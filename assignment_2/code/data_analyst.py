@@ -14,3 +14,16 @@ def generate_dataset(number_of_rows_to_be_generated, dataset_folder):
         file_path = f"{dataset_folder}dataset"
         write_csv_file(file_path, ['H0', 'HL'], [H0, HL])
 
+
+def generate_extended_dataset(number_of_rows_to_be_generated, dataset_folder):
+    for _ in tqdm(range(number_of_rows_to_be_generated), desc="Creating extended dataset..."):
+        board_game = start_random_game()
+        H0 = board_game.evaluate_board()
+        # HL
+        HL, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
+
+        material_balance, piece_square_table, king_safety, center_control, pawn_structure, piece_activity, checks = board_game.compute_heuristics()
+
+        file_path = f"{dataset_folder}extended_dataset"
+        write_csv_file(file_path, ['H0', 'HL'], [H0, HL])
+
