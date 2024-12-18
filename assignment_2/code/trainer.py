@@ -6,6 +6,7 @@ from sklearn.preprocessing import StandardScaler
 from sklearn.metrics import mean_squared_error
 import matplotlib.pyplot as plt
 from reader import read_csv_file_as_dictionary
+import math
 
 
 def train_mlp_regressor(csv_dataset_path):
@@ -16,7 +17,8 @@ def train_mlp_regressor(csv_dataset_path):
     df = pd.DataFrame(data)
 
     # Replace or drop invalid values
-    df = df.replace([np.inf, -np.inf], np.nan)  # Replace infinities with NaN
+    df = df.replace([math.inf], 100000)  # Replace +inf with a large number
+    df = df.replace([-math.inf], -100000)  # Replace -inf with a small number
     df = df.dropna()  # Drop rows with NaN values
 
     # Split data into input (X) and target (y)

@@ -79,7 +79,8 @@ if __name__ == '__main__':
             if board_game.turn == chess_game.WHITE:
                 eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
             else:
-                eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler)
+                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler)
+                #eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler)
 
             board_game.make_move(move)
 
