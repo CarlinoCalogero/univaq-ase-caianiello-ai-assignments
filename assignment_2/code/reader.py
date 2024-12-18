@@ -1,4 +1,5 @@
 import csv
+import pandas
 
 
 def read_csv_file_as_dictionary(file_path):
@@ -16,3 +17,7 @@ def read_csv_file_as_dictionary(file_path):
                 data[column].append(float(row[column]))
 
     return data
+
+
+def read_csv_as_dataframe(file_path):
+    return pandas.read_csv(file_path)
