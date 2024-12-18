@@ -9,9 +9,10 @@ from tqdm import tqdm
 from data_analyst import generate_dataset, generate_extended_dataset
 from reader import read_csv_file_as_dictionary
 from printer import write_json_file
-from trainer import train_mlp_regressor
+from trainer import train_mlp_regressor, train_mlp_regressor_with_extended_dataset
 from pred_minmax import pred_minmax
 from pred_bl_minmax_l import pred_bl_minmax_l
+from oracle import predict_HL, predict_HL_extended
 
 
 def dummy_function():
@@ -48,6 +49,7 @@ def dummy_function():
         scorekeeper.record_game("./games/")
         scorekeeper.clear_records()
 
+
 def dummy_regressor_function():
     mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
 
@@ -69,8 +71,8 @@ def dummy_regressor_function():
             if board_game.turn == chess_game.WHITE:
                 eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
             else:
-                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler)
-                # eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler)
+                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler, predict_HL)
+                # eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler, predict_HL)
 
             board_game.make_move(move)
 
@@ -85,6 +87,7 @@ def dummy_regressor_function():
         scorekeeper.record_game("./games/")
         scorekeeper.clear_records()
 
+
 def generate_dataset_for_HL():
     generate_dataset(300000, "./")
 
@@ -94,5 +97,43 @@ def convert_dataset_for_HL_to_json_dictionary():
     write_json_file("./prova", data)
 
 
-if __name__ == '__main__':
+def generate_extended_dataset_for_HL():
     generate_extended_dataset(1000, "./")
+
+
+if __name__ == '__main__':
+    mlp_regressor, scaler = train_mlp_regressor_with_extended_dataset("./extended_dataset.csv")
+
+    for _ in tqdm(range(10), desc="Playing matches..."):
+
+        board_game = start_random_game()
+
+        # print(f"[FEN \"{board_game.fen}\"]")
+        scorekeeper = Scorekeeper()
+        scorekeeper.set_game_board_to_be_tracked(board_game)
+        scorekeeper.record_fen()
+
+        move_counter = 1
+
+        while True:
+            if board_game.is_game_over():
+                break
+
+            if board_game.turn == chess_game.WHITE:
+                eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
+            else:
+                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler, predict_HL_extended)
+                # eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler, predict_HL)
+
+            board_game.make_move(move)
+
+            # print(f"{move_counter}. {move}")
+            scorekeeper.record_move(move)
+
+            move_counter = move_counter + 1
+
+        # print(board_game.board.outcome())
+        scorekeeper.record_outcome()
+
+        scorekeeper.record_game("./games/")
+        scorekeeper.clear_records()

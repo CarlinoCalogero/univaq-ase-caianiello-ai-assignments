@@ -8,6 +8,9 @@ import matplotlib.pyplot as plt
 from reader import read_csv_file_as_dictionary
 import math
 
+POSITIVE_INFINITE_PLACEHOLDER = 100000
+NEGATIVE_INFINITE_PLACEHOLDER = -100000
+
 
 def train_mlp_regressor(csv_dataset_path):
     # Get the data
@@ -17,8 +20,8 @@ def train_mlp_regressor(csv_dataset_path):
     df = pd.DataFrame(data)
 
     # Replace or drop invalid values
-    df = df.replace([math.inf], 100000)  # Replace +inf with a large number
-    df = df.replace([-math.inf], -100000)  # Replace -inf with a small number
+    df = df.replace([math.inf], POSITIVE_INFINITE_PLACEHOLDER)  # Replace +inf with a large number
+    df = df.replace([-math.inf], NEGATIVE_INFINITE_PLACEHOLDER)  # Replace -inf with a small number
     df = df.dropna()  # Drop rows with NaN values
 
     # Split data into input (X) and target (y)
@@ -38,6 +41,44 @@ def train_mlp_regressor(csv_dataset_path):
                        activation='relu',  # Activation function
                        solver='adam',  # Optimizer
                        max_iter=1000,  # Increase iterations for convergence
+                       random_state=42)  # outputs training progress information during the training process.
+
+    mlp.fit(X_train_scaled, y_train)
+
+    print("MLP Regressor Successfully trained!")
+
+    return mlp, scaler
+
+
+def train_mlp_regressor_with_extended_dataset(csv_extended_dataset_path):
+    # Get the data
+    data = read_csv_file_as_dictionary(csv_extended_dataset_path)
+
+    # Load the data into a pandas DataFrame
+    df = pd.DataFrame(data)
+
+    # Replace or drop invalid values
+    df = df.replace([math.inf], POSITIVE_INFINITE_PLACEHOLDER)  # Replace +inf with a large number
+    df = df.replace([-math.inf], NEGATIVE_INFINITE_PLACEHOLDER)  # Replace -inf with a small number
+    df = df.dropna()  # Drop rows with NaN values
+
+    # Split data into input (X) and target (y)
+    X = df.drop(columns=['HL']).values
+    y = df['HL'].values  # Target
+
+    # Split into training and testing datasets
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.2, random_state=42)
+
+    # Standardize the data (important for MLPs)
+    scaler = StandardScaler()
+    X_train_scaled = scaler.fit_transform(X_train)
+    X_test_scaled = scaler.transform(X_test)
+
+    # Define and train the MLP Regressor
+    mlp = MLPRegressor(hidden_layer_sizes=(10, 5, 3),  # Three hidden layers: 10 neurons, 5 neurons and 3 neurons
+                       activation='relu',  # Activation function
+                       solver='adam',  # Optimizer
+                       max_iter=100000,  # Increase iterations for convergence
                        random_state=42)  # outputs training progress information during the training process.
 
     mlp.fit(X_train_scaled, y_train)

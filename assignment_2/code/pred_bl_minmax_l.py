@@ -3,15 +3,15 @@ from pred_bl_minmax import pred_bl_minmax
 import random
 
 
-def predict_board_l(move, eval_level, board_game, alpha, beta, maximizing_player, branch_factor, model, scaler):
+def predict_board_l(move, eval_level, board_game, alpha, beta, maximizing_player, branch_factor, model, scaler, predict_board_function):
     board_game.make_move(move)
-    score, best_move = pred_bl_minmax(board_game, eval_level, alpha, beta, maximizing_player, branch_factor, model, scaler)
+    score, best_move = pred_bl_minmax(board_game, eval_level, alpha, beta, maximizing_player, branch_factor, model, scaler, predict_board_function)
     board_game.take_back_last_move()
     return score
 
 
 # MinMax algorithm with alpha beta pruning implementation
-def pred_bl_minmax_l(board_game, depth, alpha, beta, maximizing_player, branch_factor, eval_level, model, scaler):
+def pred_bl_minmax_l(board_game, depth, alpha, beta, maximizing_player, branch_factor, eval_level, model, scaler, predict_board_function):
     """
     Predictive branch-limited MinMax with state evaluation at level l and alpha beta pruning algorithm implementation using trained model
     :param board_game:
@@ -33,14 +33,14 @@ def pred_bl_minmax_l(board_game, depth, alpha, beta, maximizing_player, branch_f
     # Sort moves based on heuristic evaluation at level l to pick the most promising ones
     moves = list(board_game.legal_moves)
     random.shuffle(moves)
-    moves = sorted(moves, key=lambda move: predict_board_l(move, eval_level, board_game, alpha, beta, maximizing_player, branch_factor, model, scaler), reverse=maximizing_player)
+    moves = sorted(moves, key=lambda move: predict_board_l(move, eval_level, board_game, alpha, beta, maximizing_player, branch_factor, model, scaler, predict_board_function), reverse=maximizing_player)
     moves = moves[:branch_factor]  # Limit to top-N moves
 
     if maximizing_player:
         max_eval = -math.inf
         for move in moves:
             board_game.make_move(move)
-            eval, _ = pred_bl_minmax(board_game, depth - 1, alpha, beta, False, branch_factor, model, scaler)
+            eval, _ = pred_bl_minmax(board_game, depth - 1, alpha, beta, False, branch_factor, model, scaler, predict_board_function)
             board_game.take_back_last_move()
 
             if eval >= max_eval:  # the '=' avoids having move set to None because there is no best move
@@ -57,7 +57,7 @@ def pred_bl_minmax_l(board_game, depth, alpha, beta, maximizing_player, branch_f
     min_eval = +math.inf
     for move in moves:
         board_game.make_move(move)
-        eval, _ = pred_bl_minmax(board_game, depth - 1, alpha, beta, True, branch_factor, model, scaler)
+        eval, _ = pred_bl_minmax(board_game, depth - 1, alpha, beta, True, branch_factor, model, scaler, predict_board_function)
         board_game.take_back_last_move()
 
         if eval <= min_eval:  # the '=' avoids having move set to None because there is no best move
