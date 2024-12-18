@@ -11,6 +11,7 @@ from reader import read_csv_file_as_dictionary
 from printer import write_json_file
 from trainer import train_mlp_regressor
 from pred_minmax import pred_minmax
+from pred_bl_minmax_l import pred_bl_minmax_l
 
 
 def dummy_function():
@@ -78,7 +79,7 @@ if __name__ == '__main__':
             if board_game.turn == chess_game.WHITE:
                 eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
             else:
-                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler)
+                eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler)
 
             board_game.make_move(move)
 
