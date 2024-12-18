@@ -13,6 +13,7 @@ from trainer import train_mlp_regressor, train_mlp_regressor_with_extended_datas
 from pred_minmax import pred_minmax
 from pred_bl_minmax_l import pred_bl_minmax_l
 from oracle import predict_HL, predict_HL_extended
+from statistician import ab_minmax_vs_bl_minmax
 
 
 def dummy_function():
@@ -146,4 +147,4 @@ def convert_extended_dataset_for_HL_to_json_dictionary():
 
 
 if __name__ == '__main__':
-    pass
+    ab_minmax_vs_bl_minmax(500, "./stats/", 5, 5)
