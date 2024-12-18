@@ -10,16 +10,32 @@ import matplotlib.pyplot as plt
 from reader import read_csv_as_dataframe
 
 AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY = "ab_minmax_vs_bl_minmax"
+ELAPSED_TIME_EXPERIMENT_KEY = "elapsed_time"
+HL_EXPERIMENT_KEY = "HL"
 AB_MINMAX_KEY = "ab_minmax"
 BL_MINMAX_KEY = "bl_minmax"
 L_KEY = "L"
 BRANCH_FACTOR_KEY = "branch_factor"
 
 
-def plot_stacked_bar_plot(bar_1_values, bar_2_values, bar_1_label, bar_2_label, xlabel, ylabel, title):
+def plot_stacked_bar_plot(bar_1_x_values, bar_1_y_values, bar_2_x_values, bar_2_y_values, bar_1_label, bar_2_label, xlabel, ylabel, title):
     fig, ax = plt.subplots()
-    ax.bar(x=[i for i in range(len(bar_1_values))], height=bar_1_values, label=bar_1_label, color='orange')
-    ax.bar(x=[i for i in range(len(bar_2_values))], height=bar_2_values, label=bar_2_label, color='blue')
+    ax.bar(x=bar_1_x_values, height=bar_1_y_values, label=bar_1_label, color='orange')
+    ax.bar(x=bar_2_x_values, height=bar_2_y_values, label=bar_2_label, color='blue')
+    plt.xlabel(xlabel)
+    plt.ylabel(ylabel)
+    plt.title(title)
+    plt.legend()
+    plt.show()
+
+
+def plot_lines_plot(lines_x_points_list, lines_y_points_list, lines_point_labels, xlabel, ylabel, title):
+    fig, ax = plt.subplots()
+    for index in range(len(lines_x_points_list)):
+        line_x_points = lines_x_points_list[index]
+        line_y_points = lines_y_points_list[index]
+        label = lines_point_labels[index]
+        ax.plot(line_x_points, line_y_points, label=label)
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
@@ -31,30 +47,69 @@ def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
     file_path = f"{test_results_folder}{AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY}.csv"
     df = read_csv_as_dataframe(file_path)
 
-    plot_dictionary = {}
+    plot_dictionary = {
+        ELAPSED_TIME_EXPERIMENT_KEY: {},
+        HL_EXPERIMENT_KEY: {}
+    }
 
     for row in df.itertuples():
         L_and_branch_factor_pair = f"({row.L},{row.branch_factor})"
-        if L_and_branch_factor_pair not in plot_dictionary:
-            plot_dictionary[L_and_branch_factor_pair] = {
+
+        if L_and_branch_factor_pair not in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]:
+            plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_branch_factor_pair] = {
                 L_KEY: row.L,
                 BRANCH_FACTOR_KEY: row.branch_factor,
                 AB_MINMAX_KEY: [],
                 BL_MINMAX_KEY: []
             }
-        plot_dictionary[L_and_branch_factor_pair][AB_MINMAX_KEY].append(row.ab_minmax_elapsed_time)
-        plot_dictionary[L_and_branch_factor_pair][BL_MINMAX_KEY].append(row.bl_minmax_elapsed_time)
+        plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_branch_factor_pair][AB_MINMAX_KEY].append(
+            row.ab_minmax_elapsed_time)
+        plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_branch_factor_pair][BL_MINMAX_KEY].append(
+            row.bl_minmax_elapsed_time)
 
-    for key in plot_dictionary:
-        L_and_branch_factor_pair_test_results = plot_dictionary[key]
+        if L_and_branch_factor_pair not in plot_dictionary[HL_EXPERIMENT_KEY]:
+            plot_dictionary[HL_EXPERIMENT_KEY][L_and_branch_factor_pair] = {
+                L_KEY: row.L,
+                BRANCH_FACTOR_KEY: row.branch_factor,
+                AB_MINMAX_KEY: [],
+                BL_MINMAX_KEY: []
+            }
+        plot_dictionary[HL_EXPERIMENT_KEY][L_and_branch_factor_pair][AB_MINMAX_KEY].append(
+            row.ab_minmax_HL)
+        plot_dictionary[HL_EXPERIMENT_KEY][L_and_branch_factor_pair][BL_MINMAX_KEY].append(
+            row.bl_minmax_HL)
+
+    for key in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]:
+        L_and_branch_factor_pair_elapsed_time_test_results = plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key]
         plot_stacked_bar_plot(
-            L_and_branch_factor_pair_test_results[BL_MINMAX_KEY],
-            L_and_branch_factor_pair_test_results[AB_MINMAX_KEY],
+            [i for i in range(len(L_and_branch_factor_pair_elapsed_time_test_results[BL_MINMAX_KEY]))],
+            L_and_branch_factor_pair_elapsed_time_test_results[BL_MINMAX_KEY],
+            [i for i in range(len(L_and_branch_factor_pair_elapsed_time_test_results[AB_MINMAX_KEY]))],
+            L_and_branch_factor_pair_elapsed_time_test_results[AB_MINMAX_KEY],
             "blMinMax",
             "abMinMax",
             "Number of tests",
             "Time",
-            f"Execution Times for L={L_and_branch_factor_pair_test_results[L_KEY]} and branch_factor={L_and_branch_factor_pair_test_results[BRANCH_FACTOR_KEY]}"
+            f"Execution Times for L={L_and_branch_factor_pair_elapsed_time_test_results[L_KEY]} and branch_factor={L_and_branch_factor_pair_elapsed_time_test_results[BRANCH_FACTOR_KEY]}"
+        )
+
+        L_and_branch_factor_pair_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][key]
+        plot_lines_plot(
+            [
+                [i for i in range(len(L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY]))],
+                [i for i in range(len(L_and_branch_factor_pair_HL_test_results[BL_MINMAX_KEY]))]
+            ],
+            [
+                L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY],
+                L_and_branch_factor_pair_HL_test_results[BL_MINMAX_KEY]
+            ],
+            [
+                "abMinMax",
+                "blMinMax"
+            ],
+            "Number of tests",
+            "HL",
+            f"HL for L={L_and_branch_factor_pair_HL_test_results[L_KEY]} and branch_factor={L_and_branch_factor_pair_HL_test_results[BRANCH_FACTOR_KEY]}"
         )
 
 
