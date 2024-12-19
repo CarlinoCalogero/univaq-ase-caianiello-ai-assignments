@@ -13,12 +13,14 @@ from bl_minmax_l import bl_minmax_l
 import randomcolor
 from trainer import train_mlp_regressor
 from pred_minmax import pred_minmax
+from pred_bl_minmax_l import pred_bl_minmax_l
 from oracle import predict_HL
 
 AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY = "ab_minmax_vs_bl_minmax"
 BL_MINMAX_L_OPTIMAL_L_EXPERIMENT_KEY = "bl_minmax_l_optimal_l"
 BL_MINMAX_L_DIFFERENT_CHOICE_OF_L_EXPERIMENT_KEY = "bl_minmax_l_different_choice_of_l"
 PRED_MINMAX_VS_AB_MINMAX_EXPERIMENT_KEY = "pred_minmax_vs_ab_minmax"
+PRED_BL_MINMAX_l_VS_BL_MINMAX_l_EXPERIMENT_KEY = "pred_bl_minmax_l_vs_bl_minmax_l"
 ELAPSED_TIME_EXPERIMENT_KEY = "elapsed_time"
 BEST_MOVE_EXPERIMENT_KEY = "best_move"
 H0_EXPERIMENT_KEY = "H0"
@@ -782,5 +784,68 @@ def pred_minmax_vs_ab_minmax(number_of_tests, test_results_folder, L, branch_fac
                 ab_minmax_best_move,
                 pred_minmax_elapsed_time,
                 ab_minmax_elapsed_time
+            ]
+        )
+
+
+def pred_bl_minmax_l_vs_bl_minmax_l_experiment(number_of_tests, test_results_folder,
+                                        branch_factor_min_value, branch_factor_max_value):
+    L = 3  # to generate the dataset on which train the regressor an L=3 value was used, so it must not be changed
+
+    validate_branch_factor(branch_factor_min_value)
+
+    branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
+    l_interval = get_numbers_in_interval(1, max(1, L - 1))
+
+    combinations = generate_combinations_from_n_lists([L], branch_factor_interval, l_interval)
+
+    mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
+
+    for combination in tqdm(combinations, desc=f"Running tests..."):
+        pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, combination[0], combination[1], combination[2], mlp_regressor, scaler)
+
+
+def pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, L, branch_factor, l, mlp_regressor, scaler):
+    for _ in range(number_of_tests):
+        board_game = start_random_game()
+
+        starting_board_fen = board_game.fen
+
+        H0 = board_game.evaluate_board()
+
+        start_time = time.time()
+        pred_bl_minmax_l_HL, pred_bl_minmax_l_best_move = pred_bl_minmax_l(board_game, L, math.inf, math.inf, True, branch_factor, l, mlp_regressor, scaler, predict_HL)
+        pred_bl_minmax_l_elapsed_time = time.time() - start_time
+
+        start_time = time.time()
+        bl_minmax_l_HL, bl_minmax_l_move = bl_minmax_l(board_game, L, math.inf, math.inf, True, branch_factor, l)
+        bl_minmax_l_elapsed_time = time.time() - start_time
+
+        file_path = f"{test_results_folder}{PRED_BL_MINMAX_l_VS_BL_MINMAX_l_EXPERIMENT_KEY}"
+        write_csv_file(
+            file_path,
+            [
+                'starting_board_fen',
+                'H0',
+                'L',
+                'branch_factor',
+                'pred_bl_minmax_l_HL',
+                'bl_minmax_l_HL',
+                'pred_bl_minmax_l_best_move',
+                'bl_minmax_l_move',
+                'pred_bl_minmax_l_elapsed_time',
+                'bl_minmax_l_elapsed_time'
+            ],
+            [
+                starting_board_fen,
+                H0,
+                L,
+                branch_factor,
+                pred_bl_minmax_l_HL,
+                bl_minmax_l_HL,
+                pred_bl_minmax_l_best_move,
+                bl_minmax_l_move,
+                pred_bl_minmax_l_elapsed_time,
+                bl_minmax_l_elapsed_time
             ]
         )
