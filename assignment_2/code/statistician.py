@@ -284,7 +284,7 @@ def bl_minmax_l_optimal_l_experiment(number_of_tests, test_results_folder, L_min
 
     L_interval = get_numbers_in_interval(L_min_value, L_max_value)
     branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
-    l_interval = get_numbers_in_interval(0, L_max_value)
+    l_interval = get_numbers_in_interval(1, max(1, L_max_value-1))
 
     combinations = generate_combinations_from_n_lists(L_interval, branch_factor_interval, l_interval)
 

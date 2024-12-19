@@ -155,4 +155,5 @@ def plot_ab_minmax_vs_bl_minmax_experiment():
 
 
 if __name__ == '__main__':
-    bl_minmax_l_optimal_l_experiment(10, "./stats/", 5, 5, 3, 3)
+    # Do Experiment and report results observed for different choices of l with maybe Lmin=2, Lmax=5 and branch_factor_min=branch_factor_max=3
+    bl_minmax_l_optimal_l_experiment(90, "./stats/", 10, 10, 3, 3)
