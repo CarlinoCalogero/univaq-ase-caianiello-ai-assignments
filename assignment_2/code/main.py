@@ -13,7 +13,7 @@ from trainer import train_mlp_regressor, train_mlp_regressor_with_extended_datas
 from pred_minmax import pred_minmax
 from pred_bl_minmax_l import pred_bl_minmax_l
 from oracle import predict_HL, predict_HL_extended
-from statistician import ab_minmax_vs_bl_minmax_experiment, plot_ab_minmax_vs_bl_minmax_experiment_results_data
+from statistician import ab_minmax_vs_bl_minmax_experiment, plot_ab_minmax_vs_bl_minmax_experiment_results_data, bl_minmax_l_optimal_l_experiment
 
 
 def dummy_function():
@@ -155,4 +155,4 @@ def plot_ab_minmax_vs_bl_minmax_experiment():
 
 
 if __name__ == '__main__':
-    pass
+    bl_minmax_l_optimal_l_experiment(10, "./stats/", 5, 5, 3, 3)

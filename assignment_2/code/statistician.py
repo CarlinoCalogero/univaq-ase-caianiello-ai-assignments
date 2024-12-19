@@ -5,12 +5,14 @@ import math
 import time
 from tqdm import tqdm
 from printer import write_csv_file
-import itertools
+from itertools import product
 import matplotlib.pyplot as plt
 from reader import read_csv_as_dataframe
 import random
+from bl_minmax_l import bl_minmax_l
 
 AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY = "ab_minmax_vs_bl_minmax"
+BL_MINMAX_L_OPTIMAL_L_EXPERIMENT_KEY = "bl_minmax_l_optimal_l"
 ELAPSED_TIME_EXPERIMENT_KEY = "elapsed_time"
 BEST_MOVE_EXPERIMENT_KEY = "best_move"
 H0_EXPERIMENT_KEY = "H0"
@@ -160,8 +162,10 @@ def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
 
         L_and_branch_factor_pair_best_move_test_results = plot_dictionary[BEST_MOVE_EXPERIMENT_KEY][key]
         shrunk_number_of_test = [i for i in range(len(L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY]) // 30)]
-        shrunk_ab_minmax_best_moves_list = [L_and_branch_factor_pair_best_move_test_results[AB_MINMAX_KEY][i] for i in shrunk_number_of_test]
-        shrunk_bl_minmax_best_moves_list = [L_and_branch_factor_pair_best_move_test_results[BL_MINMAX_KEY][i] for i in shrunk_number_of_test]
+        shrunk_ab_minmax_best_moves_list = [L_and_branch_factor_pair_best_move_test_results[AB_MINMAX_KEY][i] for i in
+                                            shrunk_number_of_test]
+        shrunk_bl_minmax_best_moves_list = [L_and_branch_factor_pair_best_move_test_results[BL_MINMAX_KEY][i] for i in
+                                            shrunk_number_of_test]
         y_ticks = shrunk_ab_minmax_best_moves_list + shrunk_bl_minmax_best_moves_list
         random.shuffle(y_ticks)
         plot_scatter_plot(
@@ -184,11 +188,17 @@ def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
         )
 
 
+def generate_combinations_from_n_lists(*lists):
+    """
+        Generate all possible combinations from n lists.
 
-def generate_combinations_from_two_lists(list_1, list_2):
-    # It generates all possible combinations of elements from both lists
-    # Convert the result into a list of tuples
-    return list(itertools.product(list_1, list_2))
+        Parameters:
+            *lists: Variable number of lists as input.
+
+        Returns:
+            A list of tuples, where each tuple is a combination of one element from each input list.
+        """
+    return list(product(*lists))
 
 
 def validate_L(L_min_value):
@@ -215,7 +225,7 @@ def ab_minmax_vs_bl_minmax_experiment(number_of_tests, test_results_folder, L_mi
     L_interval = get_numbers_in_interval(L_min_value, L_max_value)
     branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
 
-    combinations = generate_combinations_from_two_lists(L_interval, branch_factor_interval)
+    combinations = generate_combinations_from_n_lists(L_interval, branch_factor_interval)
 
     for combination in tqdm(combinations, desc=f"Running tests..."):
         ab_minmax_vs_bl_minmax(number_of_tests, test_results_folder, combination[0], combination[1])
@@ -263,5 +273,58 @@ def ab_minmax_vs_bl_minmax(number_of_tests, test_results_folder, L, branch_facto
                 bl_minmax_best_move,
                 ab_minmax_elapsed_time,
                 bl_minmax_elapsed_time
+            ]
+        )
+
+
+def bl_minmax_l_optimal_l_experiment(number_of_tests, test_results_folder, L_min_value, L_max_value,
+                                     branch_factor_min_value, branch_factor_max_value):
+    validate_L(L_min_value)
+    validate_branch_factor(branch_factor_min_value)
+
+    L_interval = get_numbers_in_interval(L_min_value, L_max_value)
+    branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
+    l_interval = get_numbers_in_interval(0, L_max_value)
+
+    combinations = generate_combinations_from_n_lists(L_interval, branch_factor_interval, l_interval)
+
+    for combination in tqdm(combinations, desc=f"Running tests..."):
+        bl_minmax_l_experiment(number_of_tests, test_results_folder, combination[0], combination[1], combination[2])
+
+
+def bl_minmax_l_experiment(number_of_tests, test_results_folder, L, branch_factor, l):
+    for _ in range(number_of_tests):
+        board_game = start_random_game()
+
+        starting_board_fen = board_game.fen
+
+        H0 = board_game.evaluate_board()
+
+        start_time = time.time()
+        HL, best_move = bl_minmax_l(board_game, L, math.inf, math.inf, True, branch_factor, l)
+        elapsed_time = time.time() - start_time
+
+        file_path = f"{test_results_folder}{BL_MINMAX_L_OPTIMAL_L_EXPERIMENT_KEY}"
+        write_csv_file(
+            file_path,
+            [
+                'starting_board_fen',
+                'H0',
+                'L',
+                'branch_factor',
+                'l',
+                'HL',
+                'best_move',
+                'elapsed_time',
+            ],
+            [
+                starting_board_fen,
+                H0,
+                L,
+                branch_factor,
+                l,
+                HL,
+                best_move,
+                elapsed_time,
             ]
         )
