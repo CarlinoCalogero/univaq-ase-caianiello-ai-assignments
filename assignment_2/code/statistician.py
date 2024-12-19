@@ -28,6 +28,8 @@ HL_EXPERIMENT_KEY = "HL"
 AB_MINMAX_KEY = "ab_minmax"
 BL_MINMAX_KEY = "bl_minmax"
 PRED_MINMAX_KEY = "pred_minmax"
+PRED_BL_MINMAX_L_KEY = "pred_bl_minmax_l"
+BL_MINMAX_L_KEY = "bl_minmax_l"
 L_KEY = "L"
 BRANCH_FACTOR_KEY = "branch_factor"
 l_KEY = "l"
@@ -117,6 +119,7 @@ def shrink_test_samples(test_results_1, test_results_2, shrink_factor=30):
     shrunk_test_results_2_list = [test_results_2[i] for i in shrunk_number_of_test]
     return shrunk_number_of_test, shrunk_test_results_1_list, shrunk_test_results_2_list
 
+
 def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
     file_path = f"{test_results_folder}{AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY}.csv"
     df = read_csv_as_dataframe(file_path)
@@ -199,7 +202,9 @@ def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
         )
 
         L_and_branch_factor_pair_best_move_test_results = plot_dictionary[BEST_MOVE_EXPERIMENT_KEY][key]
-        shrunk_number_of_test, shrunk_ab_minmax_best_moves_list, shrunk_bl_minmax_best_moves_list = shrink_test_samples(L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY], L_and_branch_factor_pair_best_move_test_results[BL_MINMAX_KEY])
+        shrunk_number_of_test, shrunk_ab_minmax_best_moves_list, shrunk_bl_minmax_best_moves_list = shrink_test_samples(
+            L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY],
+            L_and_branch_factor_pair_best_move_test_results[BL_MINMAX_KEY])
         y_ticks = shrunk_ab_minmax_best_moves_list + shrunk_bl_minmax_best_moves_list
         random.shuffle(y_ticks)
         plot_scatter_plot(
@@ -571,6 +576,132 @@ def plot_pred_minmax_vs_ab_minmax_experiment_results_data(test_results_folder):
         )
 
 
+def add_to_pred_bl_minmax_l_vs_bl_minmax_l_experiment_plot_dictionary(branch_factor_and_l_pair, plot_dictionary,
+                                                                      plot_dictionary_parameter_key, row, row_value_1,
+                                                                      row_value_2):
+    if branch_factor_and_l_pair not in plot_dictionary[plot_dictionary_parameter_key]:
+        plot_dictionary[plot_dictionary_parameter_key][branch_factor_and_l_pair] = {
+            BRANCH_FACTOR_KEY: row.branch_factor,
+            l_KEY: row.l,
+            PRED_BL_MINMAX_L_KEY: [],
+            BL_MINMAX_L_KEY: []
+        }
+    plot_dictionary[plot_dictionary_parameter_key][branch_factor_and_l_pair][PRED_BL_MINMAX_L_KEY].append(row_value_1)
+    plot_dictionary[plot_dictionary_parameter_key][branch_factor_and_l_pair][BL_MINMAX_L_KEY].append(row_value_2)
+
+
+def plot_pred_bl_minmax_l_vs_bl_minmax_l_experiment_results_data(test_results_folder):
+    file_path = f"{test_results_folder}{PRED_BL_MINMAX_l_VS_BL_MINMAX_l_EXPERIMENT_KEY}.csv"
+    df = read_csv_as_dataframe(file_path)
+
+    plot_dictionary = {
+        H0_EXPERIMENT_KEY: {},
+        ELAPSED_TIME_EXPERIMENT_KEY: {},
+        HL_EXPERIMENT_KEY: {},
+        BEST_MOVE_EXPERIMENT_KEY: {}
+    }
+
+    for row in df.itertuples():
+        if L_KEY not in plot_dictionary:
+            plot_dictionary[L_KEY]: row.L
+
+        branch_factor_and_l_pair = f"({row.branch_factor},{row.l})"
+
+        if branch_factor_and_l_pair not in plot_dictionary[H0_EXPERIMENT_KEY]:
+            plot_dictionary[H0_EXPERIMENT_KEY][branch_factor_and_l_pair] = []
+        plot_dictionary[H0_EXPERIMENT_KEY][branch_factor_and_l_pair].append(row.H0)
+
+        add_to_pred_bl_minmax_l_vs_bl_minmax_l_experiment_plot_dictionary(
+            branch_factor_and_l_pair,
+            plot_dictionary,
+            ELAPSED_TIME_EXPERIMENT_KEY,
+            row,
+            row.pred_bl_minmax_l_elapsed_time,
+            row.bl_minmax_l_elapsed_time
+        )
+
+        add_to_pred_bl_minmax_l_vs_bl_minmax_l_experiment_plot_dictionary(
+            branch_factor_and_l_pair,
+            plot_dictionary,
+            HL_EXPERIMENT_KEY,
+            row,
+            row.pred_bl_minmax_l_HL,
+            row.bl_minmax_l_HL
+        )
+
+        add_to_pred_bl_minmax_l_vs_bl_minmax_l_experiment_plot_dictionary(
+            branch_factor_and_l_pair,
+            plot_dictionary,
+            BEST_MOVE_EXPERIMENT_KEY,
+            row,
+            row.pred_bl_minmax_l_best_move,
+            row.bl_minmax_l_best_move
+        )
+
+    for key in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]:
+        branch_factor_and_l_pair_elapsed_time_test_results = plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key]
+        plot_stacked_bar_plot(
+            [i for i in range(len(branch_factor_and_l_pair_elapsed_time_test_results[PRED_BL_MINMAX_L_KEY]))],
+            branch_factor_and_l_pair_elapsed_time_test_results[PRED_BL_MINMAX_L_KEY],
+            [i for i in range(len(branch_factor_and_l_pair_elapsed_time_test_results[BL_MINMAX_L_KEY]))],
+            branch_factor_and_l_pair_elapsed_time_test_results[BL_MINMAX_L_KEY],
+            "predictiveblMinMaxl",
+            "blMinMaxl",
+            "Number of tests",
+            "Time",
+            f"Execution Times for branch_factor={plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key][BRANCH_FACTOR_KEY]} and l={plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key][l_KEY]}"
+        )
+
+        branch_factor_and_l_pair_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][key]
+        plot_lines_plot(
+            [
+                [i for i in range(len(branch_factor_and_l_pair_HL_test_results[PRED_BL_MINMAX_L_KEY]))],
+                [i for i in range(len(branch_factor_and_l_pair_HL_test_results[BL_MINMAX_L_KEY]))],
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][key]))]
+            ],
+            [
+                branch_factor_and_l_pair_HL_test_results[PRED_BL_MINMAX_L_KEY],
+                branch_factor_and_l_pair_HL_test_results[BL_MINMAX_L_KEY],
+                plot_dictionary[H0_EXPERIMENT_KEY][key]
+            ],
+            [
+                "predictiveblMinMaxl",
+                "blMinMaxl",
+                "H0"
+            ],
+            "Number of tests",
+            "HL",
+            f"HL for branch_factor={plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key][BRANCH_FACTOR_KEY]} and l={plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key][l_KEY]}"
+        )
+
+        branch_factor_and_l_pair_best_move_test_results = plot_dictionary[BEST_MOVE_EXPERIMENT_KEY][key]
+        shrunk_number_of_test, shrunk_pred_bl_minmax_l_best_moves_list, shrunk_bl_minmax_l_best_moves_list = shrink_test_samples(
+            branch_factor_and_l_pair_best_move_test_results[PRED_BL_MINMAX_L_KEY],
+            branch_factor_and_l_pair_best_move_test_results[BL_MINMAX_L_KEY],
+            3
+        )
+        y_ticks = shrunk_pred_bl_minmax_l_best_moves_list + shrunk_bl_minmax_l_best_moves_list
+        random.shuffle(y_ticks)
+        plot_scatter_plot(
+            [
+                shrunk_number_of_test,
+                shrunk_number_of_test
+            ],
+            [
+                shrunk_pred_bl_minmax_l_best_moves_list,
+                shrunk_bl_minmax_l_best_moves_list
+            ],
+            [
+                "predictiveblMinMaxl",
+                "blMinMaxl"
+            ],
+            "Number of tests",
+            "Best Move",
+            f"Best moves for branch_factor={plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key][BRANCH_FACTOR_KEY]} and l={plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][key][l_KEY]}",
+            y_ticks
+        )
+
+
 def generate_combinations_from_n_lists(*lists):
     """
         Generate all possible combinations from n lists.
@@ -789,7 +920,7 @@ def pred_minmax_vs_ab_minmax(number_of_tests, test_results_folder, L, branch_fac
 
 
 def pred_bl_minmax_l_vs_bl_minmax_l_experiment(number_of_tests, test_results_folder,
-                                        branch_factor_min_value, branch_factor_max_value):
+                                               branch_factor_min_value, branch_factor_max_value):
     L = 3  # to generate the dataset on which train the regressor an L=3 value was used, so it must not be changed
 
     validate_branch_factor(branch_factor_min_value)
@@ -802,7 +933,8 @@ def pred_bl_minmax_l_vs_bl_minmax_l_experiment(number_of_tests, test_results_fol
     mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
 
     for combination in tqdm(combinations, desc=f"Running tests..."):
-        pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, combination[0], combination[1], combination[2], mlp_regressor, scaler)
+        pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, combination[0], combination[1],
+                                        combination[2], mlp_regressor, scaler)
 
 
 def pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, L, branch_factor, l, mlp_regressor, scaler):
@@ -814,11 +946,13 @@ def pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, L, bra
         H0 = board_game.evaluate_board()
 
         start_time = time.time()
-        pred_bl_minmax_l_HL, pred_bl_minmax_l_best_move = pred_bl_minmax_l(board_game, L, math.inf, math.inf, True, branch_factor, l, mlp_regressor, scaler, predict_HL)
+        pred_bl_minmax_l_HL, pred_bl_minmax_l_best_move = pred_bl_minmax_l(board_game, L, math.inf, math.inf, True,
+                                                                           branch_factor, l, mlp_regressor, scaler,
+                                                                           predict_HL)
         pred_bl_minmax_l_elapsed_time = time.time() - start_time
 
         start_time = time.time()
-        bl_minmax_l_HL, bl_minmax_l_move = bl_minmax_l(board_game, L, math.inf, math.inf, True, branch_factor, l)
+        bl_minmax_l_HL, bl_minmax_l_best_move = bl_minmax_l(board_game, L, math.inf, math.inf, True, branch_factor, l)
         bl_minmax_l_elapsed_time = time.time() - start_time
 
         file_path = f"{test_results_folder}{PRED_BL_MINMAX_l_VS_BL_MINMAX_l_EXPERIMENT_KEY}"
@@ -829,10 +963,11 @@ def pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, L, bra
                 'H0',
                 'L',
                 'branch_factor',
+                'l',
                 'pred_bl_minmax_l_HL',
                 'bl_minmax_l_HL',
                 'pred_bl_minmax_l_best_move',
-                'bl_minmax_l_move',
+                'bl_minmax_l_best_move',
                 'pred_bl_minmax_l_elapsed_time',
                 'bl_minmax_l_elapsed_time'
             ],
@@ -841,10 +976,11 @@ def pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, L, bra
                 H0,
                 L,
                 branch_factor,
+                l,
                 pred_bl_minmax_l_HL,
                 bl_minmax_l_HL,
                 pred_bl_minmax_l_best_move,
-                bl_minmax_l_move,
+                bl_minmax_l_best_move,
                 pred_bl_minmax_l_elapsed_time,
                 bl_minmax_l_elapsed_time
             ]
