@@ -17,7 +17,7 @@ from statistician import ab_minmax_vs_bl_minmax_experiment, plot_ab_minmax_vs_bl
     bl_minmax_l_optimal_l_experiment, bl_minmax_l_different_choice_of_l_experiment, pred_minmax_vs_ab_minmax_experiment, \
     plot_bl_minmax_l_different_choice_of_l_experiment_results_data, plot_bl_minmax_l_optimal_l_experiment_results_data, \
     plot_pred_minmax_vs_ab_minmax_experiment_results_data, pred_bl_minmax_l_vs_bl_minmax_l_experiment, \
-    plot_pred_bl_minmax_l_vs_bl_minmax_l_experiment_results_data
+    plot_pred_bl_minmax_l_vs_bl_minmax_l_experiment_results_data, pred_minmax_with_two_different_trained_dataset_regressor_experiment
 
 
 def dummy_function():
@@ -191,4 +191,4 @@ def plot_pred_bl_minmax_l_vs_bl_minmax_l_experiment():
 
 
 if __name__ == '__main__':
-    pass
+    pred_minmax_with_two_different_trained_dataset_regressor_experiment(500, "./stats/", 1, 5)

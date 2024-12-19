@@ -11,16 +11,17 @@ from reader import read_csv_as_dataframe
 import random
 from bl_minmax_l import bl_minmax_l
 import randomcolor
-from trainer import train_mlp_regressor
+from trainer import train_mlp_regressor, train_mlp_regressor_with_extended_dataset
 from pred_minmax import pred_minmax
 from pred_bl_minmax_l import pred_bl_minmax_l
-from oracle import predict_HL
+from oracle import predict_HL, predict_HL_extended
 
 AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY = "ab_minmax_vs_bl_minmax"
 BL_MINMAX_L_OPTIMAL_L_EXPERIMENT_KEY = "bl_minmax_l_optimal_l"
 BL_MINMAX_L_DIFFERENT_CHOICE_OF_L_EXPERIMENT_KEY = "bl_minmax_l_different_choice_of_l"
 PRED_MINMAX_VS_AB_MINMAX_EXPERIMENT_KEY = "pred_minmax_vs_ab_minmax"
 PRED_BL_MINMAX_l_VS_BL_MINMAX_l_EXPERIMENT_KEY = "pred_bl_minmax_l_vs_bl_minmax_l"
+PRED_MINMAX_WITH_TWO_DIFFERENT_TRAINED_DATASET_REGRESSOR = "pred_minmax_with_two_different_trained_dataset_regressor"
 ELAPSED_TIME_EXPERIMENT_KEY = "elapsed_time"
 BEST_MOVE_EXPERIMENT_KEY = "best_move"
 H0_EXPERIMENT_KEY = "H0"
@@ -983,5 +984,85 @@ def pred_bl_minmax_l_vs_bl_minmax_l(number_of_tests, test_results_folder, L, bra
                 bl_minmax_l_best_move,
                 pred_bl_minmax_l_elapsed_time,
                 bl_minmax_l_elapsed_time
+            ]
+        )
+
+
+def pred_minmax_with_two_different_trained_dataset_regressor_experiment(number_of_tests, test_results_folder,
+                                                                        branch_factor_min_value,
+                                                                        branch_factor_max_value):
+    L = 3  # to generate the dataset on which train the regressor an L=3 value was used, so it must not be changed
+
+    validate_branch_factor(branch_factor_min_value)
+
+    branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
+
+    combinations = generate_combinations_from_n_lists([L], branch_factor_interval)
+
+    print("Training MLP regressor...")
+
+    mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
+
+    print("\nTraining MLP regressor with extended dataset...")
+
+    extended_mlp_regressor, extended_scaler = train_mlp_regressor_with_extended_dataset("./extended_dataset.csv")
+
+    for combination in tqdm(combinations, desc=f"Running tests..."):
+        pred_minmax_with_two_different_trained_dataset_regressor(number_of_tests, test_results_folder, combination[0],
+                                                                 combination[1], mlp_regressor,
+                                                                 scaler, extended_mlp_regressor, extended_scaler)
+
+
+def pred_minmax_with_two_different_trained_dataset_regressor(number_of_tests, test_results_folder, L, branch_factor,
+                                                             mlp_regressor, scaler, extended_mlp_regressor,
+                                                             extended_scaler):
+    for _ in range(number_of_tests):
+        board_game = start_random_game()
+
+        starting_board_fen = board_game.fen
+
+        H0 = board_game.evaluate_board()
+
+        start_time = time.time()
+        pred_minmax_mlp_regressor_HL, pred_minmax_mlp_regressor_best_move = pred_minmax(board_game, L, math.inf,
+                                                                                        math.inf, True, mlp_regressor,
+                                                                                        scaler, predict_HL)
+        pred_minmax_mlp_regressor_elapsed_time = time.time() - start_time
+
+        start_time = time.time()
+        ab_minmax_extended_mlp_regressor_HL, ab_minmax_extended_mlp_regressor_best_move = pred_minmax(board_game, L,
+                                                                                                      math.inf,
+                                                                                                      math.inf, True,
+                                                                                                      extended_mlp_regressor,
+                                                                                                      extended_scaler,
+                                                                                                      predict_HL_extended)
+        ab_minmax_extended_mlp_regressor_elapsed_time = time.time() - start_time
+
+        file_path = f"{test_results_folder}{PRED_MINMAX_WITH_TWO_DIFFERENT_TRAINED_DATASET_REGRESSOR}"
+        write_csv_file(
+            file_path,
+            [
+                'starting_board_fen',
+                'H0',
+                'L',
+                'branch_factor',
+                'pred_minmax_mlp_regressor_HL',
+                'ab_minmax_extended_mlp_regressor_HL',
+                'pred_minmax_mlp_regressor_best_move',
+                'ab_minmax_extended_mlp_regressor_best_move',
+                'pred_minmax_mlp_regressor_elapsed_time',
+                'ab_minmax_extended_mlp_regressor_elapsed_time'
+            ],
+            [
+                starting_board_fen,
+                H0,
+                L,
+                branch_factor,
+                pred_minmax_mlp_regressor_HL,
+                ab_minmax_extended_mlp_regressor_HL,
+                pred_minmax_mlp_regressor_best_move,
+                ab_minmax_extended_mlp_regressor_best_move,
+                pred_minmax_mlp_regressor_elapsed_time,
+                ab_minmax_extended_mlp_regressor_elapsed_time
             ]
         )
