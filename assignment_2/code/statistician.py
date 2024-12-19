@@ -602,15 +602,16 @@ def bl_minmax_l_experiment(number_of_tests, test_results_folder, test_results_fi
         )
 
 
-def pred_minmax_vs_ab_minmax_experiment(number_of_tests, test_results_folder, L_min_value, L_max_value,
+def pred_minmax_vs_ab_minmax_experiment(number_of_tests, test_results_folder,
                                         branch_factor_min_value, branch_factor_max_value):
-    validate_L(L_min_value)
+
+    L = 3  # to generate the dataset on which train the regressor an L=3 value was used, so it must not be changed
+
     validate_branch_factor(branch_factor_min_value)
 
-    L_interval = get_numbers_in_interval(L_min_value, L_max_value)
     branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
 
-    combinations = generate_combinations_from_n_lists(L_interval, branch_factor_interval)
+    combinations = generate_combinations_from_n_lists([L], branch_factor_interval)
 
     mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
 

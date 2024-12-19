@@ -173,4 +173,4 @@ def plot_bl_minmax_l_optimal_l_experiment():
 
 
 if __name__ == '__main__':
-    pred_minmax_vs_ab_minmax_experiment(100, "./stats/", 1, 5, 1, 5)
+    pred_minmax_vs_ab_minmax_experiment(500, "./stats/", 1, 5)
