@@ -34,7 +34,7 @@ def plot_stacked_bar_plot(bar_1_x_values, bar_1_y_values, bar_2_x_values, bar_2_
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.legend()
+    plt.legend(loc="upper left", bbox_to_anchor=(1, 1))  # Adjust position
     plt.show()
 
 
@@ -54,7 +54,7 @@ def plot_bar_plot(bars_x_points, bars_y_points, bar_labels, xlabel, ylabel, titl
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.legend()
+    plt.legend(loc="upper left", bbox_to_anchor=(1, 1))  # Adjust position
     plt.show()
 
 
@@ -68,7 +68,7 @@ def plot_lines_plot(lines_x_points_list, lines_y_points_list, lines_point_labels
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.legend()
+    plt.legend(loc="upper left", bbox_to_anchor=(1, 1))  # Adjust position
     plt.show()
 
 
@@ -83,7 +83,7 @@ def plot_scatter_plot(lines_x_points_list, lines_y_points_list, lines_point_labe
     plt.xlabel(xlabel)
     plt.ylabel(ylabel)
     plt.title(title)
-    plt.legend()
+    plt.legend(loc="upper left", bbox_to_anchor=(1, 1))  # Adjust position
     if y_ticks is not None:
         plt.yticks(y_ticks, [str(y_tick) for y_tick in y_ticks])
     plt.show()
