@@ -25,6 +25,7 @@ H0_EXPERIMENT_KEY = "H0"
 HL_EXPERIMENT_KEY = "HL"
 AB_MINMAX_KEY = "ab_minmax"
 BL_MINMAX_KEY = "bl_minmax"
+PRED_MINMAX_KEY = "pred_minmax"
 L_KEY = "L"
 BRANCH_FACTOR_KEY = "branch_factor"
 l_KEY = "l"
@@ -108,6 +109,12 @@ def add_to_ab_minmax_vs_bl_minmax_experiment_plot_dictionary(L_and_branch_factor
     plot_dictionary[plot_dictionary_parameter_key][L_and_branch_factor_pair][BL_MINMAX_KEY].append(row_value_2)
 
 
+def shrink_test_samples(test_results_1, test_results_2, shrink_factor=30):
+    shrunk_number_of_test = [i for i in range(len(test_results_1) // shrink_factor)]
+    shrunk_test_results_1_list = [test_results_1[i] for i in shrunk_number_of_test]
+    shrunk_test_results_2_list = [test_results_2[i] for i in shrunk_number_of_test]
+    return shrunk_number_of_test, shrunk_test_results_1_list, shrunk_test_results_2_list
+
 def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
     file_path = f"{test_results_folder}{AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY}.csv"
     df = read_csv_as_dataframe(file_path)
@@ -170,19 +177,19 @@ def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
         L_and_branch_factor_pair_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][key]
         plot_lines_plot(
             [
-                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][key]))],
+                [i for i in range(len(L_and_branch_factor_pair_HL_test_results[BL_MINMAX_KEY]))],
                 [i for i in range(len(L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY]))],
-                [i for i in range(len(L_and_branch_factor_pair_HL_test_results[BL_MINMAX_KEY]))]
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][key]))]
             ],
             [
-                plot_dictionary[H0_EXPERIMENT_KEY][key],
+                L_and_branch_factor_pair_HL_test_results[BL_MINMAX_KEY],
                 L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY],
-                L_and_branch_factor_pair_HL_test_results[BL_MINMAX_KEY]
+                plot_dictionary[H0_EXPERIMENT_KEY][key]
             ],
             [
-                "H0",
+                "blMinMax",
                 "abMinMax",
-                "blMinMax"
+                "H0"
             ],
             "Number of tests",
             "HL",
@@ -190,11 +197,7 @@ def plot_ab_minmax_vs_bl_minmax_experiment_results_data(test_results_folder):
         )
 
         L_and_branch_factor_pair_best_move_test_results = plot_dictionary[BEST_MOVE_EXPERIMENT_KEY][key]
-        shrunk_number_of_test = [i for i in range(len(L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY]) // 30)]
-        shrunk_ab_minmax_best_moves_list = [L_and_branch_factor_pair_best_move_test_results[AB_MINMAX_KEY][i] for i in
-                                            shrunk_number_of_test]
-        shrunk_bl_minmax_best_moves_list = [L_and_branch_factor_pair_best_move_test_results[BL_MINMAX_KEY][i] for i in
-                                            shrunk_number_of_test]
+        shrunk_number_of_test, shrunk_ab_minmax_best_moves_list, shrunk_bl_minmax_best_moves_list = shrink_test_samples(L_and_branch_factor_pair_HL_test_results[AB_MINMAX_KEY], L_and_branch_factor_pair_best_move_test_results[BL_MINMAX_KEY])
         y_ticks = shrunk_ab_minmax_best_moves_list + shrunk_bl_minmax_best_moves_list
         random.shuffle(y_ticks)
         plot_scatter_plot(
@@ -304,16 +307,16 @@ def plot_bl_minmax_l_optimal_l_experiment_results_data(test_results_folder):
         l_value_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][l_value]
         plot_lines_plot(
             [
-                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][l_value]))],
                 [i for i in range(len(l_value_HL_test_results))],
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][l_value]))]
             ],
             [
-                plot_dictionary[H0_EXPERIMENT_KEY][l_value],
                 l_value_HL_test_results,
+                plot_dictionary[H0_EXPERIMENT_KEY][l_value]
             ],
             [
-                "H0",
-                "HL"
+                "HL",
+                "H0"
             ],
             "Number of tests",
             "HL",
@@ -432,20 +435,137 @@ def plot_bl_minmax_l_different_choice_of_l_experiment_results_data(test_results_
         L_and_l_pair_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][key]
         plot_lines_plot(
             [
-                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][key]))],
                 [i for i in range(len(L_and_l_pair_HL_test_results[VALUES_KEY]))],
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][key]))]
             ],
             [
-                plot_dictionary[H0_EXPERIMENT_KEY][key],
                 L_and_l_pair_HL_test_results[VALUES_KEY],
+                plot_dictionary[H0_EXPERIMENT_KEY][key]
             ],
             [
-                "H0",
                 "HL",
+                "H0"
             ],
             "Number of tests",
             "HL",
             f"HL for L={L_and_l_pair_HL_test_results[L_KEY]} and l={L_and_l_pair_HL_test_results[l_KEY]}"
+        )
+
+
+def add_to_pred_minmax_vs_ab_minmax_experiment_plot_dictionary(plot_dictionary,
+                                                               plot_dictionary_parameter_key, row, row_value_1,
+                                                               row_value_2):
+    if row.branch_factor not in plot_dictionary[plot_dictionary_parameter_key]:
+        plot_dictionary[plot_dictionary_parameter_key][row.branch_factor] = {
+            PRED_MINMAX_KEY: [],
+            AB_MINMAX_KEY: []
+        }
+    plot_dictionary[plot_dictionary_parameter_key][row.branch_factor][PRED_MINMAX_KEY].append(row_value_1)
+    plot_dictionary[plot_dictionary_parameter_key][row.branch_factor][AB_MINMAX_KEY].append(row_value_2)
+
+
+def plot_pred_minmax_vs_ab_minmax_experiment_results_data(test_results_folder):
+    file_path = f"{test_results_folder}{PRED_MINMAX_VS_AB_MINMAX_EXPERIMENT_KEY}.csv"
+    df = read_csv_as_dataframe(file_path)
+
+    plot_dictionary = {
+        H0_EXPERIMENT_KEY: {},
+        ELAPSED_TIME_EXPERIMENT_KEY: {},
+        HL_EXPERIMENT_KEY: {},
+        BEST_MOVE_EXPERIMENT_KEY: {}
+    }
+
+    for row in df.itertuples():
+        if L_KEY not in plot_dictionary:
+            plot_dictionary[L_KEY]: row.L
+
+        if row.branch_factor not in plot_dictionary[H0_EXPERIMENT_KEY]:
+            plot_dictionary[H0_EXPERIMENT_KEY][row.branch_factor] = []
+        plot_dictionary[H0_EXPERIMENT_KEY][row.branch_factor].append(row.H0)
+
+        add_to_pred_minmax_vs_ab_minmax_experiment_plot_dictionary(
+            plot_dictionary,
+            ELAPSED_TIME_EXPERIMENT_KEY,
+            row,
+            row.pred_minmax_elapsed_time,
+            row.ab_minmax_elapsed_time
+        )
+
+        add_to_pred_minmax_vs_ab_minmax_experiment_plot_dictionary(
+            plot_dictionary,
+            HL_EXPERIMENT_KEY,
+            row,
+            row.pred_minmax_HL,
+            row.ab_minmax_HL
+        )
+
+        add_to_pred_minmax_vs_ab_minmax_experiment_plot_dictionary(
+            plot_dictionary,
+            BEST_MOVE_EXPERIMENT_KEY,
+            row,
+            row.pred_minmax_best_move,
+            row.ab_minmax_best_move
+        )
+
+    for branch_factor_value in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]:
+        branch_factor_elapsed_time_test_results = plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][branch_factor_value]
+        plot_stacked_bar_plot(
+            [i for i in range(len(branch_factor_elapsed_time_test_results[PRED_MINMAX_KEY]))],
+            branch_factor_elapsed_time_test_results[PRED_MINMAX_KEY],
+            [i for i in range(len(branch_factor_elapsed_time_test_results[AB_MINMAX_KEY]))],
+            branch_factor_elapsed_time_test_results[AB_MINMAX_KEY],
+            "predMinMax",
+            "abMinMax",
+            "Number of tests",
+            "Time",
+            f"Execution Times for branch_factor={branch_factor_value}"
+        )
+
+        branch_factor_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][branch_factor_value]
+        plot_lines_plot(
+            [
+                [i for i in range(len(branch_factor_HL_test_results[PRED_MINMAX_KEY]))],
+                [i for i in range(len(branch_factor_HL_test_results[AB_MINMAX_KEY]))],
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][branch_factor_value]))]
+            ],
+            [
+                branch_factor_HL_test_results[PRED_MINMAX_KEY],
+                branch_factor_HL_test_results[AB_MINMAX_KEY],
+                plot_dictionary[H0_EXPERIMENT_KEY][branch_factor_value]
+            ],
+            [
+                "predMinMax",
+                "abMinMax",
+                "H0"
+            ],
+            "Number of tests",
+            "HL",
+            f"HL for branch_factor={branch_factor_value}"
+        )
+
+        branch_factor_best_move_test_results = plot_dictionary[BEST_MOVE_EXPERIMENT_KEY][branch_factor_value]
+        shrunk_number_of_test, shrunk_pred_minmax_best_moves_list, shrunk_ab_minmax_best_moves_list = shrink_test_samples(
+            branch_factor_best_move_test_results[PRED_MINMAX_KEY],
+            branch_factor_best_move_test_results[AB_MINMAX_KEY])
+        y_ticks = shrunk_pred_minmax_best_moves_list + shrunk_ab_minmax_best_moves_list
+        random.shuffle(y_ticks)
+        plot_scatter_plot(
+            [
+                shrunk_number_of_test,
+                shrunk_number_of_test
+            ],
+            [
+                shrunk_pred_minmax_best_moves_list,
+                shrunk_ab_minmax_best_moves_list
+            ],
+            [
+                "predMinMax",
+                "abMinMax"
+            ],
+            "Number of tests",
+            "Best Move",
+            f"Best moves for branch_factor={branch_factor_value}",
+            y_ticks
         )
 
 
@@ -604,7 +724,6 @@ def bl_minmax_l_experiment(number_of_tests, test_results_folder, test_results_fi
 
 def pred_minmax_vs_ab_minmax_experiment(number_of_tests, test_results_folder,
                                         branch_factor_min_value, branch_factor_max_value):
-
     L = 3  # to generate the dataset on which train the regressor an L=3 value was used, so it must not be changed
 
     validate_branch_factor(branch_factor_min_value)
