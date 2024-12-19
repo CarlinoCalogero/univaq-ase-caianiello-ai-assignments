@@ -24,6 +24,7 @@ BL_MINMAX_KEY = "bl_minmax"
 L_KEY = "L"
 BRANCH_FACTOR_KEY = "branch_factor"
 l_KEY = "l"
+VALUES_KEY = "values"
 
 
 def plot_stacked_bar_plot(bar_1_x_values, bar_1_y_values, bar_2_x_values, bar_2_y_values, bar_1_label, bar_2_label,
@@ -284,7 +285,8 @@ def plot_bl_minmax_l_optimal_l_experiment_results_data(test_results_folder):
             [l_value] for l_value in plot_dictionary[HL_EXPERIMENT_KEY]
         ],
         [
-            [sum(plot_dictionary[HL_EXPERIMENT_KEY][l_value]) / len(plot_dictionary[HL_EXPERIMENT_KEY][l_value])] for l_value in plot_dictionary[HL_EXPERIMENT_KEY]  # average
+            [sum(plot_dictionary[HL_EXPERIMENT_KEY][l_value]) / len(plot_dictionary[HL_EXPERIMENT_KEY][l_value])] for
+            l_value in plot_dictionary[HL_EXPERIMENT_KEY]  # average
         ],
         [
             [f"l={l_value}"] for l_value in plot_dictionary[HL_EXPERIMENT_KEY]
@@ -312,6 +314,132 @@ def plot_bl_minmax_l_optimal_l_experiment_results_data(test_results_folder):
             "Number of tests",
             "HL",
             f"HL for l={l_value}"
+        )
+
+
+def add_to_bl_minmax_l_different_choice_of_l_experiment_plot_dictionary(L_and_l_pair, plot_dictionary, plot_dictionary_parameter_key, row, row_value):
+    if L_and_l_pair not in plot_dictionary[plot_dictionary_parameter_key]:
+        plot_dictionary[plot_dictionary_parameter_key][L_and_l_pair] = {
+            L_KEY: row.L,
+            l_KEY: row.l,
+            VALUES_KEY: [],
+        }
+    plot_dictionary[plot_dictionary_parameter_key][L_and_l_pair][VALUES_KEY].append(row_value)
+
+
+def plot_bl_minmax_l_different_choice_of_l_experiment_results_data(test_results_folder):
+    file_path = f"{test_results_folder}{BL_MINMAX_L_DIFFERENT_CHOICE_OF_L_EXPERIMENT_KEY}.csv"
+    df = read_csv_as_dataframe(file_path)
+
+    plot_dictionary = {
+        H0_EXPERIMENT_KEY: {},
+        ELAPSED_TIME_EXPERIMENT_KEY: {},
+        HL_EXPERIMENT_KEY: {},
+        BEST_MOVE_EXPERIMENT_KEY: {}
+    }
+
+    for row in df.itertuples():
+        if BRANCH_FACTOR_KEY not in plot_dictionary:
+            plot_dictionary[BRANCH_FACTOR_KEY]: row.branch_factor
+
+        L_and_l_pair = f"({row.L},{row.l})"
+
+        if L_and_l_pair not in plot_dictionary[H0_EXPERIMENT_KEY]:
+            plot_dictionary[H0_EXPERIMENT_KEY][L_and_l_pair] = []
+        plot_dictionary[H0_EXPERIMENT_KEY][L_and_l_pair].append(row.H0)
+
+        add_to_bl_minmax_l_different_choice_of_l_experiment_plot_dictionary(
+            L_and_l_pair,
+            plot_dictionary,
+            ELAPSED_TIME_EXPERIMENT_KEY,
+            row,
+            row.elapsed_time
+        )
+
+        add_to_bl_minmax_l_different_choice_of_l_experiment_plot_dictionary(
+            L_and_l_pair,
+            plot_dictionary,
+            HL_EXPERIMENT_KEY,
+            row,
+            row.HL
+        )
+
+        add_to_bl_minmax_l_different_choice_of_l_experiment_plot_dictionary(
+            L_and_l_pair,
+            plot_dictionary,
+            BEST_MOVE_EXPERIMENT_KEY,
+            row,
+            row.best_move
+        )
+
+    plot_lines_plot(
+        [
+            [L_and_l_pair for L_and_l_pair in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]],
+        ],
+        [
+            [sum(plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY]) / len(
+                plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY]) for L_and_l_pair in
+             plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]],  # average
+        ],
+        [
+            "Average Elapsed Time",
+        ],
+        "(L,l)",
+        "Time",
+        f"Average elapsed time"
+    )
+
+    plot_bar_plot(
+        [
+            [L_and_l_pair] for L_and_l_pair in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]
+        ],
+        [
+            [sum(plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY]) / len(
+                plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY])] for L_and_l_pair in
+            plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]  # average
+        ],
+        [
+            [L_and_l_pair] for L_and_l_pair in plot_dictionary[HL_EXPERIMENT_KEY]
+        ],
+        "(L,l)",
+        "Time",
+        f"Average elapsed time"
+    )
+
+    plot_bar_plot(
+        [
+            [L_and_l_pair] for L_and_l_pair in plot_dictionary[HL_EXPERIMENT_KEY]
+        ],
+        [
+            [sum(plot_dictionary[HL_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY]) / len(plot_dictionary[HL_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY])] for
+            L_and_l_pair in plot_dictionary[HL_EXPERIMENT_KEY]  # average
+        ],
+        [
+            [L_and_l_pair] for L_and_l_pair in plot_dictionary[HL_EXPERIMENT_KEY]
+        ],
+        "(L,l)",
+        "HL",
+        f"Average HL"
+    )
+
+    for key in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]:
+        L_and_l_pair_HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][key]
+        plot_lines_plot(
+            [
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][key]))],
+                [i for i in range(len(L_and_l_pair_HL_test_results[VALUES_KEY]))],
+            ],
+            [
+                plot_dictionary[H0_EXPERIMENT_KEY][key],
+                L_and_l_pair_HL_test_results[VALUES_KEY],
+            ],
+            [
+                "H0",
+                "HL",
+            ],
+            "Number of tests",
+            "HL",
+            f"HL for L={L_and_l_pair_HL_test_results[L_KEY]} and l={L_and_l_pair_HL_test_results[l_KEY]}"
         )
 
 
