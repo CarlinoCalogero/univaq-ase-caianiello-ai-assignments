@@ -31,6 +31,8 @@ BL_MINMAX_KEY = "bl_minmax"
 PRED_MINMAX_KEY = "pred_minmax"
 PRED_BL_MINMAX_L_KEY = "pred_bl_minmax_l"
 BL_MINMAX_L_KEY = "bl_minmax_l"
+PRED_MINMAX_MLP_REGRESSOR_KEY = "pred_minmax_mlp_regressor"
+PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY = "pred_minmax_extended_mlp_regressor"
 L_KEY = "L"
 BRANCH_FACTOR_KEY = "branch_factor"
 l_KEY = "l"
@@ -703,6 +705,126 @@ def plot_pred_bl_minmax_l_vs_bl_minmax_l_experiment_results_data(test_results_fo
         )
 
 
+def add_to_pred_minmax_with_two_different_trained_dataset_regressor_experiment_plot_dictionary(plot_dictionary,
+                                                                                               plot_dictionary_parameter_key,
+                                                                                               row, row_value_1,
+                                                                                               row_value_2):
+    if row.branch_factor not in plot_dictionary[plot_dictionary_parameter_key]:
+        plot_dictionary[plot_dictionary_parameter_key][row.branch_factor] = {
+            PRED_MINMAX_MLP_REGRESSOR_KEY: [],
+            PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY: []
+        }
+    plot_dictionary[plot_dictionary_parameter_key][row.branch_factor][PRED_MINMAX_MLP_REGRESSOR_KEY].append(row_value_1)
+    plot_dictionary[plot_dictionary_parameter_key][row.branch_factor][PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY].append(
+        row_value_2)
+
+
+def plot_pred_minmax_with_two_different_trained_dataset_regressor_experiment_results_data(test_results_folder):
+    file_path = f"{test_results_folder}{PRED_MINMAX_WITH_TWO_DIFFERENT_TRAINED_DATASET_REGRESSOR}.csv"
+    df = read_csv_as_dataframe(file_path)
+
+    plot_dictionary = {
+        H0_EXPERIMENT_KEY: {},
+        ELAPSED_TIME_EXPERIMENT_KEY: {},
+        HL_EXPERIMENT_KEY: {},
+        BEST_MOVE_EXPERIMENT_KEY: {}
+    }
+
+    for row in df.itertuples():
+        if L_KEY not in plot_dictionary:
+            plot_dictionary[L_KEY]: row.L
+
+        if row.branch_factor not in plot_dictionary[H0_EXPERIMENT_KEY]:
+            plot_dictionary[H0_EXPERIMENT_KEY][row.branch_factor] = []
+        plot_dictionary[H0_EXPERIMENT_KEY][row.branch_factor].append(row.H0)
+
+        add_to_pred_minmax_with_two_different_trained_dataset_regressor_experiment_plot_dictionary(
+            plot_dictionary,
+            ELAPSED_TIME_EXPERIMENT_KEY,
+            row,
+            row.pred_minmax_mlp_regressor_elapsed_time,
+            row.pred_minmax_extended_mlp_regressor_elapsed_time
+        )
+
+        add_to_pred_minmax_with_two_different_trained_dataset_regressor_experiment_plot_dictionary(
+            plot_dictionary,
+            HL_EXPERIMENT_KEY,
+            row,
+            row.pred_minmax_mlp_regressor_HL,
+            row.pred_minmax_extended_mlp_regressor_HL
+        )
+
+        add_to_pred_minmax_with_two_different_trained_dataset_regressor_experiment_plot_dictionary(
+            plot_dictionary,
+            BEST_MOVE_EXPERIMENT_KEY,
+            row,
+            row.pred_minmax_mlp_regressor_best_move,
+            row.pred_minmax_extended_mlp_regressor_best_move
+        )
+
+    for branch_factor_value in plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY]:
+        branch_factor_elapsed_time_test_results = plot_dictionary[ELAPSED_TIME_EXPERIMENT_KEY][branch_factor_value]
+        plot_stacked_bar_plot(
+            [i for i in range(len(branch_factor_elapsed_time_test_results[PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY]))],
+            branch_factor_elapsed_time_test_results[PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY],
+            [i for i in range(len(branch_factor_elapsed_time_test_results[PRED_MINMAX_MLP_REGRESSOR_KEY]))],
+            branch_factor_elapsed_time_test_results[PRED_MINMAX_MLP_REGRESSOR_KEY],
+            "predMinMaxl with mlp regressor trained on H0 function dataset",
+            "predMinMaxl with mlp regressor trained on static H0 dataset",
+            "Number of tests",
+            "Time",
+            f"Execution Times for branch_factor={branch_factor_value}"
+        )
+
+        branch_factor__HL_test_results = plot_dictionary[HL_EXPERIMENT_KEY][branch_factor_value]
+        plot_lines_plot(
+            [
+                [i for i in range(len(branch_factor__HL_test_results[PRED_MINMAX_MLP_REGRESSOR_KEY]))],
+                [i for i in range(len(branch_factor__HL_test_results[PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY]))],
+                [i for i in range(len(plot_dictionary[H0_EXPERIMENT_KEY][branch_factor_value]))]
+            ],
+            [
+                branch_factor__HL_test_results[PRED_MINMAX_MLP_REGRESSOR_KEY],
+                branch_factor__HL_test_results[PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY],
+                plot_dictionary[H0_EXPERIMENT_KEY][branch_factor_value]
+            ],
+            [
+                "predMinMaxl with mlp regressor trained on static H0 dataset",
+                "predMinMaxl with mlp regressor trained on H0 function dataset",
+                "H0"
+            ],
+            "Number of tests",
+            "HL",
+            f"HL for branch_factor={branch_factor_value}"
+        )
+
+        branch_factor_move_test_results = plot_dictionary[BEST_MOVE_EXPERIMENT_KEY][branch_factor_value]
+        shrunk_number_of_test, shrunk_pred_bl_minmax_l_best_moves_list, shrunk_bl_minmax_l_best_moves_list = shrink_test_samples(
+            branch_factor_move_test_results[PRED_MINMAX_MLP_REGRESSOR_KEY],
+            branch_factor_move_test_results[PRED_MINMAX_EXTENDED_MLP_REGRESSOR_KEY]
+        )
+        y_ticks = shrunk_pred_bl_minmax_l_best_moves_list + shrunk_bl_minmax_l_best_moves_list
+        random.shuffle(y_ticks)
+        plot_scatter_plot(
+            [
+                shrunk_number_of_test,
+                shrunk_number_of_test
+            ],
+            [
+                shrunk_pred_bl_minmax_l_best_moves_list,
+                shrunk_bl_minmax_l_best_moves_list
+            ],
+            [
+                "predMinMaxl with mlp regressor trained on static H0 dataset",
+                "predMinMaxl with mlp regressor trained on H0 function dataset",
+            ],
+            "Number of tests",
+            "Best Move",
+            f"Best moves for branch_factor={branch_factor_value}",
+            y_ticks
+        )
+
+
 def generate_combinations_from_n_lists(*lists):
     """
         Generate all possible combinations from n lists.
@@ -1030,13 +1152,13 @@ def pred_minmax_with_two_different_trained_dataset_regressor(number_of_tests, te
         pred_minmax_mlp_regressor_elapsed_time = time.time() - start_time
 
         start_time = time.time()
-        ab_minmax_extended_mlp_regressor_HL, ab_minmax_extended_mlp_regressor_best_move = pred_minmax(board_game, L,
+        pred_minmax_extended_mlp_regressor_HL, pred_minmax_extended_mlp_regressor_best_move = pred_minmax(board_game, L,
                                                                                                       math.inf,
                                                                                                       math.inf, True,
                                                                                                       extended_mlp_regressor,
                                                                                                       extended_scaler,
                                                                                                       predict_HL_extended)
-        ab_minmax_extended_mlp_regressor_elapsed_time = time.time() - start_time
+        pred_minmax_extended_mlp_regressor_elapsed_time = time.time() - start_time
 
         file_path = f"{test_results_folder}{PRED_MINMAX_WITH_TWO_DIFFERENT_TRAINED_DATASET_REGRESSOR}"
         write_csv_file(
@@ -1047,11 +1169,11 @@ def pred_minmax_with_two_different_trained_dataset_regressor(number_of_tests, te
                 'L',
                 'branch_factor',
                 'pred_minmax_mlp_regressor_HL',
-                'ab_minmax_extended_mlp_regressor_HL',
+                'pred_minmax_extended_mlp_regressor_HL',
                 'pred_minmax_mlp_regressor_best_move',
-                'ab_minmax_extended_mlp_regressor_best_move',
+                'pred_minmax_extended_mlp_regressor_best_move',
                 'pred_minmax_mlp_regressor_elapsed_time',
-                'ab_minmax_extended_mlp_regressor_elapsed_time'
+                'pred_minmax_extended_mlp_regressor_elapsed_time'
             ],
             [
                 starting_board_fen,
@@ -1059,10 +1181,10 @@ def pred_minmax_with_two_different_trained_dataset_regressor(number_of_tests, te
                 L,
                 branch_factor,
                 pred_minmax_mlp_regressor_HL,
-                ab_minmax_extended_mlp_regressor_HL,
+                pred_minmax_extended_mlp_regressor_HL,
                 pred_minmax_mlp_regressor_best_move,
-                ab_minmax_extended_mlp_regressor_best_move,
+                pred_minmax_extended_mlp_regressor_best_move,
                 pred_minmax_mlp_regressor_elapsed_time,
-                ab_minmax_extended_mlp_regressor_elapsed_time
+                pred_minmax_extended_mlp_regressor_elapsed_time
             ]
         )
