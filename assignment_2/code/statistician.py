@@ -287,7 +287,7 @@ def plot_bl_minmax_l_optimal_l_experiment_results_data(test_results_folder):
             [sum(plot_dictionary[HL_EXPERIMENT_KEY][l_value]) / len(plot_dictionary[HL_EXPERIMENT_KEY][l_value])] for l_value in plot_dictionary[HL_EXPERIMENT_KEY]  # average
         ],
         [
-            [str(l_value)] for l_value in plot_dictionary[HL_EXPERIMENT_KEY]
+            [f"l={l_value}"] for l_value in plot_dictionary[HL_EXPERIMENT_KEY]
         ],
         "l",
         "HL",
