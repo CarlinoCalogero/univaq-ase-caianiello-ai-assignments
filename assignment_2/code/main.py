@@ -13,7 +13,9 @@ from trainer import train_mlp_regressor, train_mlp_regressor_with_extended_datas
 from pred_minmax import pred_minmax
 from pred_bl_minmax_l import pred_bl_minmax_l
 from oracle import predict_HL, predict_HL_extended
-from statistician import ab_minmax_vs_bl_minmax_experiment, plot_ab_minmax_vs_bl_minmax_experiment_results_data, bl_minmax_l_optimal_l_experiment, bl_minmax_l_different_choice_of_l_experiment
+from statistician import ab_minmax_vs_bl_minmax_experiment, plot_ab_minmax_vs_bl_minmax_experiment_results_data, \
+    bl_minmax_l_optimal_l_experiment, bl_minmax_l_different_choice_of_l_experiment, pred_minmax_vs_ab_minmax_experiment, \
+    plot_bl_minmax_l_different_choice_of_l_experiment_results_data, plot_bl_minmax_l_optimal_l_experiment_results_data
 
 
 def dummy_function():
@@ -72,7 +74,7 @@ def dummy_regressor_function():
             if board_game.turn == chess_game.WHITE:
                 eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
             else:
-                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler, predict_HL)
+                eval, move = pred_minmax(board_game, 2, math.inf, math.inf, True, mlp_regressor, scaler, predict_HL)
                 # eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler, predict_HL)
 
             board_game.make_move(move)
@@ -110,7 +112,7 @@ def dummy_extended_regressor_function():
             if board_game.turn == chess_game.WHITE:
                 eval, move = ab_minmax(board_game, 3, math.inf, math.inf, True)
             else:
-                eval, move = pred_minmax(board_game, 2, -math.inf, math.inf, True, mlp_regressor, scaler,
+                eval, move = pred_minmax(board_game, 2, math.inf, math.inf, True, mlp_regressor, scaler,
                                          predict_HL_extended)
                 # eval, move = pred_bl_minmax_l(board_game, 2, -math.inf, math.inf, True, 5, 1, mlp_regressor, scaler, predict_HL)
 
@@ -153,9 +155,22 @@ def run_ab_minmax_vs_bl_minmax_experiment():
 def plot_ab_minmax_vs_bl_minmax_experiment():
     plot_ab_minmax_vs_bl_minmax_experiment_results_data("./stats/")
 
+
+def run_bl_minmax_l_different_choice_of_l_experiment():
+    bl_minmax_l_different_choice_of_l_experiment(100, "./stats/", 2, 5, 3, 3)
+
+
+def plot_bl_minmax_l_different_choice_of_l_experiment():
+    plot_bl_minmax_l_different_choice_of_l_experiment_results_data("./stats/")
+
+
 def run_bl_minmax_l_optimal_l_experiment():
     bl_minmax_l_optimal_l_experiment(90, "./stats/")
 
+
+def plot_bl_minmax_l_optimal_l_experiment():
+    plot_bl_minmax_l_optimal_l_experiment_results_data("./stats/")
+
+
 if __name__ == '__main__':
-    # Do Experiment and report results observed for different choices of l with maybe Lmin=2, Lmax=5 and branch_factor_min=branch_factor_max=3
-    bl_minmax_l_different_choice_of_l_experiment(100, "./stats/", 2, 5, 3, 3)
+    pred_minmax_vs_ab_minmax_experiment(100, "./stats/", 1, 5, 1, 5)

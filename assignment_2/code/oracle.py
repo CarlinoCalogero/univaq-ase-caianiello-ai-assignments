@@ -13,7 +13,7 @@ def predict_HL(board_game, model, scaler):
     H0_input = H0_input.reshape(-1, 1)
     H0_input_scaled = scaler.transform(H0_input)
     HL_predicted = model.predict(H0_input_scaled)
-    return HL_predicted
+    return HL_predicted[0]
 
 def predict_HL_extended(board_game, model, scaler):
     """
@@ -28,4 +28,4 @@ def predict_HL_extended(board_game, model, scaler):
     input = input.reshape(1, -1)
     input_scaled = scaler.transform(input)
     HL_predicted = model.predict(input_scaled)
-    return HL_predicted
+    return HL_predicted[0]

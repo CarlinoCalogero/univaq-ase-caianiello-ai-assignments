@@ -11,10 +11,14 @@ from reader import read_csv_as_dataframe
 import random
 from bl_minmax_l import bl_minmax_l
 import randomcolor
+from trainer import train_mlp_regressor
+from pred_minmax import pred_minmax
+from oracle import predict_HL
 
 AB_MINMAX_VS_BL_MINMAX_EXPERIMENT_KEY = "ab_minmax_vs_bl_minmax"
 BL_MINMAX_L_OPTIMAL_L_EXPERIMENT_KEY = "bl_minmax_l_optimal_l"
 BL_MINMAX_L_DIFFERENT_CHOICE_OF_L_EXPERIMENT_KEY = "bl_minmax_l_different_choice_of_l"
+PRED_MINMAX_VS_AB_MINMAX_EXPERIMENT_KEY = "pred_minmax_vs_ab_minmax"
 ELAPSED_TIME_EXPERIMENT_KEY = "elapsed_time"
 BEST_MOVE_EXPERIMENT_KEY = "best_move"
 H0_EXPERIMENT_KEY = "H0"
@@ -317,7 +321,8 @@ def plot_bl_minmax_l_optimal_l_experiment_results_data(test_results_folder):
         )
 
 
-def add_to_bl_minmax_l_different_choice_of_l_experiment_plot_dictionary(L_and_l_pair, plot_dictionary, plot_dictionary_parameter_key, row, row_value):
+def add_to_bl_minmax_l_different_choice_of_l_experiment_plot_dictionary(L_and_l_pair, plot_dictionary,
+                                                                        plot_dictionary_parameter_key, row, row_value):
     if L_and_l_pair not in plot_dictionary[plot_dictionary_parameter_key]:
         plot_dictionary[plot_dictionary_parameter_key][L_and_l_pair] = {
             L_KEY: row.L,
@@ -411,7 +416,8 @@ def plot_bl_minmax_l_different_choice_of_l_experiment_results_data(test_results_
             [L_and_l_pair] for L_and_l_pair in plot_dictionary[HL_EXPERIMENT_KEY]
         ],
         [
-            [sum(plot_dictionary[HL_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY]) / len(plot_dictionary[HL_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY])] for
+            [sum(plot_dictionary[HL_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY]) / len(
+                plot_dictionary[HL_EXPERIMENT_KEY][L_and_l_pair][VALUES_KEY])] for
             L_and_l_pair in plot_dictionary[HL_EXPERIMENT_KEY]  # average
         ],
         [
@@ -592,5 +598,69 @@ def bl_minmax_l_experiment(number_of_tests, test_results_folder, test_results_fi
                 HL,
                 best_move,
                 elapsed_time,
+            ]
+        )
+
+
+def pred_minmax_vs_ab_minmax_experiment(number_of_tests, test_results_folder, L_min_value, L_max_value,
+                                        branch_factor_min_value, branch_factor_max_value):
+    validate_L(L_min_value)
+    validate_branch_factor(branch_factor_min_value)
+
+    L_interval = get_numbers_in_interval(L_min_value, L_max_value)
+    branch_factor_interval = get_numbers_in_interval(branch_factor_min_value, branch_factor_max_value)
+
+    combinations = generate_combinations_from_n_lists(L_interval, branch_factor_interval)
+
+    mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
+
+    for combination in tqdm(combinations, desc=f"Running tests..."):
+        pred_minmax_vs_ab_minmax(number_of_tests, test_results_folder, combination[0], combination[1], mlp_regressor,
+                                 scaler)
+
+
+def pred_minmax_vs_ab_minmax(number_of_tests, test_results_folder, L, branch_factor, mlp_regressor, scaler):
+    for _ in range(number_of_tests):
+        board_game = start_random_game()
+
+        starting_board_fen = board_game.fen
+
+        H0 = board_game.evaluate_board()
+
+        start_time = time.time()
+        pred_minmax_HL, pred_minmax_best_move = pred_minmax(board_game, L, math.inf, math.inf, True, mlp_regressor,
+                                                            scaler, predict_HL)
+        pred_minmax_elapsed_time = time.time() - start_time
+
+        start_time = time.time()
+        ab_minmax_HL, ab_minmax_best_move = ab_minmax(board_game, L, math.inf, math.inf, True)
+        ab_minmax_elapsed_time = time.time() - start_time
+
+        file_path = f"{test_results_folder}{PRED_MINMAX_VS_AB_MINMAX_EXPERIMENT_KEY}"
+        write_csv_file(
+            file_path,
+            [
+                'starting_board_fen',
+                'H0',
+                'L',
+                'branch_factor',
+                'pred_minmax_HL',
+                'ab_minmax_HL',
+                'pred_minmax_best_move',
+                'ab_minmax_best_move',
+                'pred_minmax_elapsed_time',
+                'ab_minmax_elapsed_time'
+            ],
+            [
+                starting_board_fen,
+                H0,
+                L,
+                branch_factor,
+                pred_minmax_HL,
+                ab_minmax_HL,
+                pred_minmax_best_move,
+                ab_minmax_best_move,
+                pred_minmax_elapsed_time,
+                ab_minmax_elapsed_time
             ]
         )
