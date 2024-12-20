@@ -20,10 +20,10 @@ from statistician import ab_minmax_vs_bl_minmax_experiment, plot_ab_minmax_vs_bl
     plot_pred_bl_minmax_l_vs_bl_minmax_l_experiment_results_data, \
     pred_minmax_with_two_different_trained_dataset_regressor_experiment, \
     plot_pred_minmax_with_two_different_trained_dataset_regressor_experiment_results_data, \
-    pred_minmax_extended_mlp_regressor_vs_ab_minmax_experiment, pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment
+    pred_minmax_extended_mlp_regressor_vs_ab_minmax_experiment, pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment, plot_pred_minmax_extended_mlp_regressor_vs_ab_minmax_experiment_results_data, plot_pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment_results_data
 
 
-def dummy_function():
+def start_ab_minmax_vs_bl_minmax_chess_game():
     for _ in tqdm(range(1000), desc="Playing matches..."):
 
         board_game = start_random_game()
@@ -58,7 +58,7 @@ def dummy_function():
         scorekeeper.clear_records()
 
 
-def dummy_regressor_function():
+def start_ab_minmax_vs_pred_minmax_chess_game():
     mlp_regressor, scaler = train_mlp_regressor("./dataset.csv")
 
     for _ in tqdm(range(10), desc="Playing matches..."):
@@ -96,7 +96,7 @@ def dummy_regressor_function():
         scorekeeper.clear_records()
 
 
-def dummy_extended_regressor_function():
+def start_ab_minmax_vs_pred_minmax_extended_mlp_regressor_chess_game():
     mlp_regressor, scaler = train_mlp_regressor_with_extended_dataset("./extended_dataset.csv")
 
     for _ in tqdm(range(10), desc="Playing matches..."):
@@ -206,8 +206,15 @@ def run_pred_minmax_extended_mlp_regressor_vs_ab_minmax_experiment():
 
 
 def plot_pred_minmax_extended_mlp_regressor_vs_ab_minmax_experiment():
-    pass
+    plot_pred_minmax_extended_mlp_regressor_vs_ab_minmax_experiment_results_data("./stats/")
+
+def run_pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment():
+    pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment(100, "./stats/", 1, 5)
+
+
+def plot_pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment():
+    plot_pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment_results_data("./stats/")
 
 
 if __name__ == '__main__':
-    pred_bl_minmax_l_extended_mlp_regressor_vs_bl_minmax_l_experiment(100, "./stats/", 1, 5)
+    start_ab_minmax_vs_bl_minmax_chess_game()
